@@ -1,4 +1,5 @@
 from tkinter import *
+from tkinter import ttk
 
 
 class App:
@@ -52,6 +53,9 @@ class App:
 
         self.new2 = Button(master, text="Register", command = self.register_nav)
         self.new2.grid(row = 7)
+
+        self.new3 = Button(master, text = "User Func", command = self.user_functionality)
+        self.new3.grid(row = 8)
 
         #self.connect()
         #query = ("SELECT fname FROM EMPLOYEE")
@@ -391,6 +395,54 @@ class App:
 ###########################################################################
     def register_login_empVis(self):
         pass
+
+###########################################################################
+    def user_functionality(self):
+        self.firstGUI.withdraw()
+        self.navGUI = Toplevel()
+        self.navGUI.title("User Functionality")
+
+        Label(self.navGUI, text="User Functionality").grid(row = 1)
+
+        frame = Frame(self.navGUI)
+        frame.grid()
+
+        '''TODO Make Back Button Go Back To An actual Screen'''
+        self.register = Button(self.navGUI, text="Take Transit", command = self.take_transit).grid(row=2)
+        self.register = Button(self.navGUI, text="View Transite History", command = self.register_visitor).grid(row=3)
+        self.register = Button(self.navGUI, text="Back", command = self.register_employee).grid(row=4)
+
+###########################################################################
+    def take_transit(self):
+        self.navGUI.withdraw()
+        self.take_tran = Toplevel()
+        self.take_tran.title("Take Transit")
+
+        Label(self.take_tran, text="Take Transit").grid(row = 0)
+
+        frame = Frame(self.take_tran)
+        frame.grid()
+
+        Label(frame, text="Contain Site ").grid(row = 0, column = 0)
+        self.destination = StringVar()
+        choices = ["Manager", "Staff"]
+        self.destination.set("Manager")
+        self.popupMenu = OptionMenu(frame, self.destination, *choices)
+        self.popupMenu.grid(row = 0, column = 1)
+
+
+        frame_tree = Frame(self.take_tran)
+        frame_tree.grid()
+
+        tree = ttk.Treeview(frame_tree, columns=['Route', 'Transport Type', 'Price', '# Connected Sites'], show='headings')
+
+        tree.heading('Route', text='Route')
+        tree.heading('Transport Type', text='Transport Type')
+        tree.heading('Price', text='Price')
+        tree.heading("# Connected Sites", text='# Connected Sites')
+        tree.insert("", "end", values=("1", "2", "3", "4"))
+        tree.insert("", "end", values=("4", "5", "6", "7"))
+        tree.grid(row = 1, column = 3)
 
 root = Tk()
 
