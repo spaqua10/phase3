@@ -28,7 +28,7 @@ class App:
         frame = Frame(master)
         frame.grid()
 
-        Label(root, text="Username:").grid(row = 2)
+        Label(root, text="Email:").grid(row = 2)
 
         self.user = StringVar()
         self.usernameEnter = Entry(master, textvariable=self.user)
