@@ -115,43 +115,43 @@ class App:
         self.regUser = Toplevel()
         self.regUser.title("Register User")
 
+        Label(self.regUser, text="Register User").grid(row = 0)
+
         frame = Frame(self.regUser)
         frame.grid()
 
-        Label(self.regUser, text="Register User").grid(row = 1, column = 1)
-
-        Label(self.regUser, text="First Name: ").grid(row = 2, column = 0)
+        Label(frame, text="First Name: ").grid(row = 0, column = 0)
         self.fname = StringVar()
-        self.fname_enter = Entry(self.regUser, textvariable=self.fname)
-        self.fname_enter.grid(row = 2, column = 1)
+        self.fname_enter = Entry(frame, textvariable=self.fname)
+        self.fname_enter.grid(row = 0, column = 1)
 
-        Label(self.regUser, text="Last Name: ").grid(row = 2, column = 2)
+        Label(frame, text="Last Name: ").grid(row = 0, column = 2)
         self.lname = StringVar()
-        self.lname_enter = Entry(self.regUser, textvariable=self.lname)
-        self.lname_enter.grid(row = 2, column = 3)
+        self.lname_enter = Entry(frame, textvariable=self.lname)
+        self.lname_enter.grid(row = 0, column = 3)
 
-        Label(self.regUser, text="Username: ").grid(row = 3, column = 0)
+        Label(frame, text="Username: ").grid(row = 1, column = 0)
         self.user = StringVar()
-        self.username_enter = Entry(self.regUser, textvariable=self.user)
-        self.username_enter.grid(row = 3, column = 1)
+        self.username_enter = Entry(frame, textvariable=self.user)
+        self.username_enter.grid(row = 1, column = 1)
 
-        Label(self.regUser, text="Password: ").grid(row = 4, column = 0)
+        Label(frame, text="Password: ").grid(row = 2, column = 0)
         self.password = StringVar()
-        self.password_enter = Entry(self.regUser, textvariable=self.password)
-        self.password_enter.grid(row = 4, column = 1)
+        self.password_enter = Entry(frame, textvariable=self.password)
+        self.password_enter.grid(row = 2, column = 1)
 
-        Label(self.regUser, text="Confirm Password: ").grid(row = 4, column = 2)
+        Label(frame, text="Confirm Password: ").grid(row = 2, column = 2)
         self.password_confirm = StringVar()
-        self.password_confirm_enter = Entry(self.regUser, textvariable=self.password_confirm)
-        self.password_confirm_enter.grid(row = 4, column = 3)
+        self.password_confirm_enter = Entry(frame, textvariable=self.password_confirm)
+        self.password_confirm_enter.grid(row = 2, column = 3)
 
-        Label(self.regUser, text="Email: ").grid(row = 5, column = 0)
+        Label(frame, text="Email: ").grid(row = 3, column = 0)
         self.email = StringVar()
-        self.email_enter = Entry(self.regUser, textvariable=self.email)
-        self.email_enter.grid(row = 5, column = 1)
+        self.email_enter = Entry(frame, textvariable=self.email)
+        self.email_enter.grid(row = 3, column = 1)
 
-        self.registerUser = Button(self.regUser, text="Back", command = self.register_user_back).grid(row = 6, column = 1)
-        self.registerUser = Button(self.regUser, text="Register", command = self.register_login_user).grid(row = 6, column = 2)
+        self.registerUser = Button(frame, text="Back", command = self.register_user_back).grid(row = 4, column = 1)
+        self.registerUser = Button(frame, text="Register", command = self.register_login_user).grid(row = 4, column = 2)
 
 
 ###########################################################################
@@ -160,44 +160,44 @@ class App:
         self.regVisitor = Toplevel()
         self.regVisitor.title("Register Visitor")
 
+        Label(self.regVisitor, text="Register Visitor").grid(row = 0)
+
         frame = Frame(self.regVisitor)
         frame.grid()
 
-        Label(self.regVisitor, text="Register Visitor", anchor="center", justify="center").grid(row = 1)
 
-
-        Label(self.regVisitor, text="First Name: ").grid(row = 2, column = 0)
+        Label(frame, text="First Name: ").grid(row = 0, column = 0)
         self.fname = StringVar()
-        self.fname_enter = Entry(self.regVisitor, textvariable=self.fname)
-        self.fname_enter.grid(row = 2, column = 1)
+        self.fname_enter = Entry(frame, textvariable=self.fname)
+        self.fname_enter.grid(row = 0, column = 1)
 
-        Label(self.regVisitor, text="Last Name: ").grid(row = 2, column = 2)
+        Label(frame, text="Last Name: ").grid(row = 0, column = 2)
         self.lname = StringVar()
-        self.lname_enter = Entry(self.regVisitor, textvariable=self.lname)
-        self.lname_enter.grid(row = 2, column = 3)
+        self.lname_enter = Entry(frame, textvariable=self.lname)
+        self.lname_enter.grid(row = 0, column = 3)
 
-        Label(self.regVisitor, text="Username: ").grid(row = 3, column = 0)
+        Label(frame, text="Username: ").grid(row = 1, column = 0)
         self.user = StringVar()
-        self.username_enter = Entry(self.regVisitor, textvariable=self.user)
-        self.username_enter.grid(row = 3, column = 1)
+        self.username_enter = Entry(frame, textvariable=self.user)
+        self.username_enter.grid(row = 1, column = 1)
 
-        Label(self.regVisitor, text="Password: ").grid(row = 4, column = 0)
+        Label(frame, text="Password: ").grid(row = 2, column = 0)
         self.password = StringVar()
-        self.password_enter = Entry(self.regVisitor, textvariable=self.password)
-        self.password_enter.grid(row = 4, column = 1)
+        self.password_enter = Entry(frame, textvariable=self.password)
+        self.password_enter.grid(row = 2, column = 1)
 
-        Label(self.regVisitor, text="Confirm Password: ").grid(row = 4, column = 2)
+        Label(frame, text="Confirm Password: ").grid(row = 2, column = 2)
         self.password_confirm = StringVar()
-        self.password_confirm_enter = Entry(self.regVisitor, textvariable=self.password_confirm)
-        self.password_confirm_enter.grid(row = 4, column = 3)
+        self.password_confirm_enter = Entry(frame, textvariable=self.password_confirm)
+        self.password_confirm_enter.grid(row = 2, column = 3)
 
-        Label(self.regVisitor, text="Email: ").grid(row = 5, column = 0)
+        Label(frame, text="Email: ").grid(row = 3, column = 0)
         self.email = StringVar()
-        self.email_enter = Entry(self.regVisitor, textvariable=self.email)
-        self.email_enter.grid(row = 5, column = 1)
+        self.email_enter = Entry(frame, textvariable=self.email)
+        self.email_enter.grid(row = 3, column = 1)
 
-        self.registerUser = Button(self.regVisitor, text="Back", command = self.register_visitor_back).grid(row = 6, column = 1)
-        self.registerUser = Button(self.regVisitor, text="Register", command = self.register_login_visitor).grid(row = 6, column = 2)
+        self.registerUser = Button(frame, text="Back", command = self.register_visitor_back).grid(row = 4, column = 1)
+        self.registerUser = Button(frame, text="Register", command = self.register_login_visitor).grid(row = 4, column = 2)
 
 ###########################################################################
     def register_employee(self):
@@ -205,77 +205,77 @@ class App:
         self.regEmp = Toplevel()
         self.regEmp.title("Register Employee")
 
+        Label(self.regEmp, text="Register Employee").grid(row = 0)
+
         frame = Frame(self.regEmp)
         frame.grid()
 
-        Label(self.regEmp, text="Register Employee").grid(row = 1)
-
-        Label(self.regEmp, text="First Name: ").grid(row = 2, column = 0)
+        Label(frame, text="First Name: ").grid(row = 0, column = 0)
         self.fname = StringVar()
-        self.fname_enter = Entry(self.regEmp, textvariable=self.fname)
-        self.fname_enter.grid(row = 2, column = 1)
+        self.fname_enter = Entry(frame, textvariable=self.fname)
+        self.fname_enter.grid(row = 0, column = 1)
 
-        Label(self.regEmp, text="Last Name: ").grid(row = 2, column = 2)
+        Label(frame, text="Last Name: ").grid(row = 0, column = 2)
         self.lname = StringVar()
-        self.lname_enter = Entry(self.regEmp, textvariable=self.lname)
-        self.lname_enter.grid(row = 2, column = 3)
+        self.lname_enter = Entry(frame, textvariable=self.lname)
+        self.lname_enter.grid(row = 0, column = 3)
 
-        Label(self.regEmp, text="Username: ").grid(row = 3, column = 0)
+        Label(frame, text="Username: ").grid(row = 1, column = 0)
         self.user = StringVar()
-        self.username_enter = Entry(self.regEmp, textvariable=self.user)
-        self.username_enter.grid(row = 3, column = 1)
+        self.username_enter = Entry(frame, textvariable=self.user)
+        self.username_enter.grid(row = 1, column = 1)
 
-        Label(self.regEmp, text="User Type: ").grid(row = 3, column = 2)
+        Label(frame, text="User Type: ").grid(row = 1, column = 2)
         self.userType = StringVar()
         choices = ["Manager", "Staff"]
         self.userType.set("Manager")
-        self.popupMenu = OptionMenu(self.regEmp, self.userType, *choices)
-        self.popupMenu.grid(row = 3, column = 3)
+        self.popupMenu = OptionMenu(frame, self.userType, *choices)
+        self.popupMenu.grid(row = 1, column = 3)
 
-        Label(self.regEmp, text="Password: ").grid(row = 4, column = 0)
+        Label(frame, text="Password: ").grid(row = 2, column = 0)
         self.password = StringVar()
-        self.password_enter = Entry(self.regEmp, textvariable=self.password)
-        self.password_enter.grid(row = 4, column = 1)
+        self.password_enter = Entry(frame, textvariable=self.password)
+        self.password_enter.grid(row = 2, column = 1)
 
-        Label(self.regEmp, text="Confirm Password: ").grid(row = 4, column = 2)
+        Label(frame, text="Confirm Password: ").grid(row = 2, column = 2)
         self.password_confirm = StringVar()
-        self.password_confirm_enter = Entry(self.regEmp, textvariable=self.password_confirm)
-        self.password_confirm_enter.grid(row = 4, column = 3)
+        self.password_confirm_enter = Entry(frame, textvariable=self.password_confirm)
+        self.password_confirm_enter.grid(row = 2, column = 3)
 
-        Label(self.regEmp, text="Phone: ").grid(row = 5, column = 0)
+        Label(frame, text="Phone: ").grid(row = 3, column = 0)
         self.phone = IntVar()
-        self.phone_enter = Entry(self.regEmp, textvariable=self.phone)
-        self.phone_enter.grid(row = 5, column = 1)
+        self.phone_enter = Entry(frame, textvariable=self.phone)
+        self.phone_enter.grid(row = 3, column = 1)
 
-        Label(self.regEmp, text="Address: ").grid(row = 5, column = 2)
+        Label(frame, text="Address: ").grid(row = 3, column = 2)
         self.address = StringVar()
-        self.address_enter = Entry(self.regEmp, textvariable=self.address)
+        self.address_enter = Entry(frame, textvariable=self.address)
         self.address_enter.grid(row = 5, column = 3)
 
-        Label(self.regEmp, text="City: ").grid(row = 6, column = 0)
+        Label(frame, text="City: ").grid(row = 4, column = 0)
         self.city = StringVar()
-        self.city_enter = Entry(self.regEmp, textvariable=self.city)
-        self.city_enter.grid(row = 6, column = 1)
+        self.city_enter = Entry(frame, textvariable=self.city)
+        self.city_enter.grid(row = 4, column = 1)
 
-        Label(self.regEmp, text="State: ").grid(row = 6, column = 2)
+        Label(frame, text="State: ").grid(row = 4, column = 2)
         self.state = StringVar()
         choices_state = ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY", "Other"]
         self.state.set("AL")
-        self.popupMenuState = OptionMenu(self.regEmp, self.state, *choices_state)
-        self.popupMenuState.grid(row = 6, column = 3)
+        self.popupMenuState = OptionMenu(frame, self.state, *choices_state)
+        self.popupMenuState.grid(row = 4, column = 3)
 
-        Label(self.regEmp, text="Zipcode: ").grid(row = 6, column = 4)
+        Label(frame, text="Zipcode: ").grid(row = 4, column = 4)
         self.zip = IntVar()
-        self.zip_enter = Entry(self.regEmp, textvariable=self.zip)
-        self.zip_enter.grid(row = 6, column = 5)
+        self.zip_enter = Entry(frame, textvariable=self.zip)
+        self.zip_enter.grid(row = 4, column = 5)
 
-        Label(self.regEmp, text="Email: ").grid(row = 7, column = 0)
+        Label(frame, text="Email: ").grid(row = 5, column = 0)
         self.email = StringVar()
-        self.email_enter = Entry(self.regEmp, textvariable=self.email)
-        self.email_enter.grid(row = 7, column = 1)
+        self.email_enter = Entry(frame, textvariable=self.email)
+        self.email_enter.grid(row = 5, column = 1)
 
-        self.registerUser = Button(self.regEmp, text="Back", command = self.register_emp_back).grid(row = 8, column = 1)
-        self.registerUser = Button(self.regEmp, text="Register", command = self.register_login_emp).grid(row = 8, column = 2)
+        self.registerUser = Button(frame, text="Back", command = self.register_emp_back).grid(row = 6, column = 1)
+        self.registerUser = Button(frame, text="Register", command = self.register_login_emp).grid(row = 6, column = 2)
 
 ###########################################################################
     def register_employee_visitor(self):
@@ -283,77 +283,77 @@ class App:
         self.regEmpVis = Toplevel()
         self.regEmpVis.title("Register Employee-Visitor")
 
+        Label(self.regEmpVis, text="Register Employee").grid(row = 0)
+
         frame = Frame(self.regEmpVis)
         frame.grid()
 
-        Label(self.regEmpVis, text="Register Employee").grid(row = 1)
-
-        Label(self.regEmpVis, text="First Name: ").grid(row = 2, column = 0)
+        Label(frame, text="First Name: ").grid(row = 0, column = 0)
         self.fname = StringVar()
-        self.fname_enter = Entry(self.regEmpVis, textvariable=self.fname)
-        self.fname_enter.grid(row = 2, column = 1)
+        self.fname_enter = Entry(frame, textvariable=self.fname)
+        self.fname_enter.grid(row = 0, column = 1)
 
-        Label(self.regEmpVis, text="Last Name: ").grid(row = 2, column = 2)
+        Label(frame, text="Last Name: ").grid(row = 0, column = 2)
         self.lname = StringVar()
-        self.lname_enter = Entry(self.regEmpVis, textvariable=self.lname)
-        self.lname_enter.grid(row = 2, column = 3)
+        self.lname_enter = Entry(frame, textvariable=self.lname)
+        self.lname_enter.grid(row = 0, column = 3)
 
-        Label(self.regEmpVis, text="Username: ").grid(row = 3, column = 0)
+        Label(frame, text="Username: ").grid(row = 1, column = 0)
         self.user = StringVar()
-        self.username_enter = Entry(self.regEmpVis, textvariable=self.user)
-        self.username_enter.grid(row = 3, column = 1)
+        self.username_enter = Entry(frame, textvariable=self.user)
+        self.username_enter.grid(row = 1, column = 1)
 
-        Label(self.regEmpVis, text="User Type: ").grid(row = 3, column = 2)
+        Label(frame, text="User Type: ").grid(row = 1, column = 2)
         self.userType = StringVar()
         choices = ["Manager", "Staff"]
         self.userType.set("Manager")
-        self.popupMenu = OptionMenu(self.regEmpVis, self.userType, *choices)
-        self.popupMenu.grid(row = 3, column = 3)
+        self.popupMenu = OptionMenu(frame, self.userType, *choices)
+        self.popupMenu.grid(row = 1, column = 3)
 
-        Label(self.regEmpVis, text="Password: ").grid(row = 4, column = 0)
+        Label(frame, text="Password: ").grid(row = 2, column = 0)
         self.password = StringVar()
-        self.password_enter = Entry(self.regEmpVis, textvariable=self.password)
-        self.password_enter.grid(row = 4, column = 1)
+        self.password_enter = Entry(frame, textvariable=self.password)
+        self.password_enter.grid(row = 2, column = 1)
 
-        Label(self.regEmpVis, text="Confirm Password: ").grid(row = 4, column = 2)
+        Label(frame, text="Confirm Password: ").grid(row = 2, column = 2)
         self.password_confirm = StringVar()
-        self.password_confirm_enter = Entry(self.regEmpVis, textvariable=self.password_confirm)
-        self.password_confirm_enter.grid(row = 4, column = 3)
+        self.password_confirm_enter = Entry(frame, textvariable=self.password_confirm)
+        self.password_confirm_enter.grid(row = 2, column = 3)
 
-        Label(self.regEmpVis, text="Phone: ").grid(row = 5, column = 0)
+        Label(frame, text="Phone: ").grid(row = 3, column = 0)
         self.phone = IntVar()
-        self.phone_enter = Entry(self.regEmpVis, textvariable=self.phone)
-        self.phone_enter.grid(row = 5, column = 1)
+        self.phone_enter = Entry(frame, textvariable=self.phone)
+        self.phone_enter.grid(row = 3, column = 1)
 
-        Label(self.regEmpVis, text="Address: ").grid(row = 5, column = 2)
+        Label(frame, text="Address: ").grid(row = 3, column = 2)
         self.address = StringVar()
-        self.address_enter = Entry(self.regEmpVis, textvariable=self.address)
-        self.address_enter.grid(row = 5, column = 3)
+        self.address_enter = Entry(frame, textvariable=self.address)
+        self.address_enter.grid(row = 3, column = 3)
 
-        Label(self.regEmpVis, text="City: ").grid(row = 6, column = 0)
+        Label(frame, text="City: ").grid(row = 4, column = 0)
         self.city = StringVar()
-        self.city_enter = Entry(self.regEmpVis, textvariable=self.city)
-        self.city_enter.grid(row = 6, column = 1)
+        self.city_enter = Entry(frame, textvariable=self.city)
+        self.city_enter.grid(row = 4, column = 1)
 
-        Label(self.regEmpVis, text="State: ").grid(row = 6, column = 2)
+        Label(frame, text="State: ").grid(row = 4, column = 2)
         self.state = StringVar()
         choices_state = ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY", "Other"]
         self.state.set("AL")
-        self.popupMenuState = OptionMenu(self.regEmpVis, self.state, *choices_state)
-        self.popupMenuState.grid(row = 6, column = 3)
+        self.popupMenuState = OptionMenu(frame, self.state, *choices_state)
+        self.popupMenuState.grid(row = 4, column = 3)
 
-        Label(self.regEmpVis, text="Zipcode: ").grid(row = 6, column = 4)
+        Label(frame, text="Zipcode: ").grid(row = 4, column = 4)
         self.zip = IntVar()
-        self.zip_enter = Entry(self.regEmpVis, textvariable=self.zip)
-        self.zip_enter.grid(row = 6, column = 5)
+        self.zip_enter = Entry(frame, textvariable=self.zip)
+        self.zip_enter.grid(row = 4, column = 5)
 
-        Label(self.regEmpVis, text="Email: ").grid(row = 7, column = 0)
+        Label(frame, text="Email: ").grid(row = 5, column = 0)
         self.email = StringVar()
-        self.email_enter = Entry(self.regEmpVis, textvariable=self.email)
-        self.email_enter.grid(row = 7, column = 1)
+        self.email_enter = Entry(frame, textvariable=self.email)
+        self.email_enter.grid(row = 5, column = 1)
 
-        self.registerUser = Button(self.regEmpVis, text="Back", command = self.register_empVis_back).grid(row = 8, column = 1)
-        self.registerUser = Button(self.regEmpVis, text="Register", command = self.register_login_empVis).grid(row = 8, column = 2)
+        self.registerUser = Button(frame, text="Back", command = self.register_empVis_back).grid(row = 6, column = 1)
+        self.registerUser = Button(frame, text="Register", command = self.register_login_empVis).grid(row = 6, column = 2)
 
 ###########################################################################
     def back(self):
@@ -430,6 +430,25 @@ class App:
         self.popupMenu = OptionMenu(frame, self.destination, *choices)
         self.popupMenu.grid(row = 0, column = 1)
 
+        Label(frame, text="Transport Type ").grid(row = 0, column = 2)
+        self.trans_type = StringVar()
+        choices_type = ['MARTA', 'Bus', 'Bike']
+        self.trans_type.set('MARTA')
+        self.popup = OptionMenu(frame, self.trans_type, *choices_type)
+        self.popup.grid(row = 0, column = 3)
+
+        Label(frame, text="Price Range ").grid(row = 1, column = 0)
+        self.price_lower = IntVar()
+        self.price_lower_enter = Entry(frame, textvariable=self.price_lower)
+        self.price_lower_enter.grid(row = 1, column = 1)
+
+        Label(frame, text=" -- ").grid(row = 1, column = 2)
+        self.price_upper = IntVar()
+        self.price_upper_enter = Entry(frame, textvariable=self.price_upper)
+        self.price_upper_enter.grid(row = 1, column = 3)
+
+        self.filter = Button(frame, text="Filter", command = self.filter_take_trans).grid(row = 1, column = 5)
+
 
         frame_tree = Frame(self.take_tran)
         frame_tree.grid()
@@ -443,6 +462,30 @@ class App:
         tree.insert("", "end", values=("1", "2", "3", "4"))
         tree.insert("", "end", values=("4", "5", "6", "7"))
         tree.grid(row = 1, column = 3)
+
+        frame_under = Frame(self.take_tran)
+        frame_under.grid()
+
+        self.back = Button(frame_under, text="Back", command = self.back_take_trans).grid(row = 0, column = 0)
+
+        Label(frame_under, text="Transit Date ").grid(row = 0, column = 2)
+        self.date = StringVar()
+        self.date_entry = Entry(frame_under, textvariable=self.date)
+        self.date_entry.grid(row = 0, column = 3)
+
+        self.log = Button(frame_under, text="Log Transit", command = self.log_transit).grid(row = 0, column = 4)
+
+###########################################################################
+    def filter_take_trans(self):
+        pass
+
+###########################################################################
+    def back_take_trans(self):
+        pass
+
+###########################################################################
+    def log_transit(self):
+        pass
 
 root = Tk()
 
