@@ -558,7 +558,7 @@ class App:
         frame.grid()
 
         '''TODO Make Back Button Go Back To An actual Screen'''
-        self.register = Button(self.staffOnlyGUI, text="Manage Profile", command=self.manage_profile()).grid(row=2)
+        self.register = Button(self.staffOnlyGUI, text="Manage Profile", command=self.manage_profile).grid(row=2)
         self.register = Button(self.staffOnlyGUI, text="View Schedule", command=self.view_schedule).grid(row=3)
         self.register = Button(self.staffOnlyGUI, text="Take Transit", command=self.take_transit).grid(row=4)
         self.register = Button(self.staffOnlyGUI, text="View Transit History", command=self.view_transit_history).grid(row=5)
@@ -576,7 +576,7 @@ class App:
         frame.grid()
 
         '''TODO Make Back Button Go Back To An actual Screen'''
-        self.register = Button(self.staffVisGUI, text="Manage Profile", command=self.manage_profile()).grid(row=2)
+        self.register = Button(self.staffVisGUI, text="Manage Profile", command=self.manage_profile).grid(row=2)
         self.register = Button(self.staffVisGUI, text="View Schedule", command=self.view_schedule).grid(row=3)
         self.register = Button(self.staffVisGUI, text="Take Transit", command=self.take_transit).grid(row=4)
         self.register = Button(self.staffVisGUI, text="View Transit History", command=self.view_transit_history).grid(
@@ -740,44 +740,31 @@ class App:
         self.lname_enter.grid(row=0, column=3)
 
         Label(frame, text="Username: ").grid(row=1, column=0)
-        self.user = StringVar()
-        self.username_enter = Entry(frame, textvariable=self.user)
-        self.username_enter.grid(row=1, column=1)
+        Label(frame, text='user').grid(row=1, column=1)
 
-        Label(frame, text="User Type: ").grid(row=1, column=2)
-        self.userType = StringVar()
-        choices = ["Manager", "Staff"]
-        self.userType.set("Manager")
-        self.popupMenu = OptionMenu(frame, self.userType, *choices)
-        self.popupMenu.grid(row=1, column=3)
+        Label(frame, text="Site Name: ").grid(row=1, column=2)
+        Label(frame, text="Site").grid(row=1, column=3)
 
-        Label(frame, text="Password: ").grid(row=2, column=0)
-        self.password = StringVar()
-        self.password_enter = Entry(frame, textvariable=self.password)
-        self.password_enter.grid(row=2, column=1)
+        Label(frame, text="Employee ID: ").grid(row=2, column=0)
+        Label(frame, text="123456789").grid(row=2, column=1)
 
-        Label(frame, text="Confirm Password: ").grid(row=2, column=2)
-        self.password_confirm = StringVar()
-        self.password_confirm_enter = Entry(frame, textvariable=self.password_confirm)
-        self.password_confirm_enter.grid(row=2, column=3)
-
-        Label(frame, text="Phone: ").grid(row=3, column=0)
+        Label(frame, text="Phone ").grid(row=2, column=2)
         self.phone = IntVar()
         self.phone_enter = Entry(frame, textvariable=self.phone)
-        self.phone_enter.grid(row=3, column=1)
+        self.phone_enter.grid(row=2, column=3)
 
-        Label(frame, text="Address: ").grid(row=3, column=2)
+        Label(frame, text="Address: ").grid(row=3, column=0)
         self.address = StringVar()
         self.address_enter = Entry(frame, textvariable=self.address)
-        self.address_enter.grid(row=5, column=3)
+        self.address_enter.grid(row=3, column=1)
 
-        Label(frame, text="Email: ").grid(row=5, column=0)
+        Label(frame, text="Email: ").grid(row=4, column=0)
         self.email = StringVar()
         self.email_enter = Entry(frame, textvariable=self.email)
-        self.email_enter.grid(row=5, column=1)
+        self.email_enter.grid(row=4, column=1)
 
-        self.registerUser = Button(frame, text="Back", command=self.register_emp_back).grid(row=6, column=1)
-        self.registerUser = Button(frame, text="Register", command=self.register_login_emp).grid(row=6, column=2)
+        self.registerUser = Button(frame, text="Back", command=self.register_emp_back).grid(row=5, column=0)
+        self.registerUser = Button(frame, text="Register", command=self.register_login_emp).grid(row=5, column=1)
 
     def manage_user(self):
         self.currGui.withdraw()
@@ -839,6 +826,148 @@ class App:
         pass
 
     def manage_transit(self):
+        self.currGui.withdraw()
+        self.manageTranGui = Toplevel()
+        self.currGui = self.manageTranGui
+        self.manageTranGui.title("Manage Transit")
+
+        Label(self.manageTranGui, text="Manage Transit").grid(row=0)
+
+        frame = Frame(self.manageTranGui)
+        frame.grid()
+
+        Label(frame, text="Transport Type ").grid(row=0, column=0)
+        self.trans_type = StringVar()
+        choices = ["MARTA", "Bus", "Bike"]
+        self.trans_type.set("MARTA")
+        self.popupMenu = OptionMenu(frame, self.trans_type, *choices)
+        self.popupMenu.grid(row=0, column=1)
+
+        Label(frame, text="Route ").grid(row=0, column=2)
+        self.route = StringVar()
+        self.route_enter = Entry(frame, textvariable=self.route)
+        self.route_enter.grid(row=0, column=3)
+
+        Label(frame, text="Contain Site ").grid(row=1, column=0)
+        self.site = StringVar()
+        choices_type = ['Approved', 'Declined', 'Pending', 'All']
+        self.site.set('Approved')
+        self.popup = OptionMenu(frame, self.site, *choices_type)
+        self.popup.grid(row=1, column=1)
+
+        Label(frame, text="Price Range ").grid(row=1, column=2)
+        self.price_lower = IntVar()
+        self.price_lower_enter = Entry(frame, textvariable=self.price_lower)
+        self.price_lower_enter.grid(row=1, column=3)
+
+        Label(frame, text=" -- ").grid(row=1, column=4)
+        self.price_upper = IntVar()
+        self.price_upper_enter = Entry(frame, textvariable=self.price_upper)
+        self.price_upper_enter.grid(row=1, column=5)
+
+        self.filter = Button(frame, text="Filter", command=self.filter_take_trans).grid(row=2, column=0)
+
+        self.create = Button(frame, text="Create", command=self.create_transit).grid(row=2, column=1)
+        self.edit = Button(frame, text='Edit', command=self.edit_transit).grid(row=2, column=2)
+        self.delete = Button(frame, text='Delete', command=self.delete_transit).grid(row=2, column=3)
+
+        frame_tree = Frame(self.manageTranGui)
+        frame_tree.grid()
+
+        tree = ttk.Treeview(frame_tree, columns=['Route', 'Transport Type', 'Price', '# Connected Sites', '# Transit Logged'],
+                            show='headings')
+
+        tree.heading('Route', text='Route')
+        tree.heading('Transport Type', text='Transport Type')
+        tree.heading('Price', text='Price')
+        tree.heading("# Connected Sites", text='# Connected Sites')
+        tree.heading("# Transit Logged", text='# Transit Logged')
+        tree.insert("", "end", values=("1", "2", "3", "4", "5"))
+        tree.insert("", "end", values=("4", "5", "6", "7", "8"))
+        tree.grid(row=1, column=3)
+
+        frame_under = Frame(self.manageTranGui)
+        frame_under.grid()
+
+        self.back = Button(frame_under, text="Back", command=self.back_take_trans).grid(row=0, column=0)
+
+    def create_transit(self):
+        self.manageTranGui.withdraw()
+        self.createTransit = Toplevel()
+        self.prevGUI = self.currGui
+        self.currGui = self.createTransit
+        self.createTransit.title("Create Transit")
+
+        Label(self.createTransit, text="Create Transit").grid(row=0)
+
+        frame = Frame(self.createTransit)
+        frame.grid()
+
+        Label(frame, text="Transport Type").grid(row=0, column=0)
+        self.transType = StringVar()
+        choices_type = ['MARTA', 'Bus', 'Bike']
+        self.transType.set('MARTA')
+        self.popup = OptionMenu(frame, self.transType, *choices_type)
+        self.popup.grid(row=0, column=1)
+
+        Label(frame, text="Route").grid(row=0, column=2)
+        self.route = StringVar()
+        self.route_enter = Entry(frame, textvariable=self.route)
+        self.route_enter.grid(row=0, column=3)
+
+        Label(frame, text="Price").grid(row=0, column=4)
+        self.price = IntVar()
+        self.price_enter = Entry(frame, textvariable=self.price)
+        self.price_enter.grid(row = 0, column = 5)
+
+        Label(frame, text="Connected Sites").grid(row = 1, column = 0)
+
+        list = Listbox(frame, selectmode=MULTIPLE)
+        list.insert(0, 'Atlanta Beltline Center')
+        list.insert(1, 'Gorden-White Park')
+        list.insert(2, 'Inman Park')
+        list.grid(row=1, column = 1)
+
+        self.registerUser = Button(frame, text="Back", command=self.register_user_back).grid(row=2, column=1)
+        self.registerUser = Button(frame, text="Create", command=self.register_login_user).grid(row=2, column=2)
+
+    def edit_transit(self):
+        self.manageTranGui.withdraw()
+        self.editTransit = Toplevel()
+        self.prevGUI = self.currGui
+        self.currGui = self.editTransit
+        self.editTransit.title("Edit Transit")
+
+        Label(self.editTransit, text="Edit Transit").grid(row=0)
+
+        frame = Frame(self.editTransit)
+        frame.grid()
+
+        Label(frame, text="Transport Type").grid(row=0, column=0)
+        Label(frame, text="Bus").grid(row = 0, column = 1)
+
+        Label(frame, text="Route").grid(row=0, column=2)
+        self.route = StringVar()
+        self.route_enter = Entry(frame, textvariable=self.route)
+        self.route_enter.grid(row=0, column=3)
+
+        Label(frame, text="Price").grid(row=0, column=4)
+        self.price = IntVar()
+        self.price_enter = Entry(frame, textvariable=self.price)
+        self.price_enter.grid(row = 0, column = 5)
+
+        Label(frame, text="Connected Sites").grid(row = 1, column = 0)
+
+        list = Listbox(frame, selectmode=MULTIPLE)
+        list.insert(0, 'Atlanta Beltline Center')
+        list.insert(1, 'Gorden-White Park')
+        list.insert(2, 'Inman Park')
+        list.grid(row=1, column = 1)
+
+        self.registerUser = Button(frame, text="Back", command=self.register_user_back).grid(row=2, column=1)
+        self.registerUser = Button(frame, text="Edit", command=self.register_login_user).grid(row=2, column=2)
+
+    def delete_transit(self):
         pass
 
     def manage_site(self):
@@ -935,7 +1064,7 @@ class App:
 
 
         self.registerUser = Button(frame, text="Back", command=self.register_user_back).grid(row=4, column=1)
-        self.registerUser = Button(frame, text="Register", command=self.register_login_user).grid(row=4, column=2)
+        self.registerUser = Button(frame, text="Create", command=self.register_login_user).grid(row=4, column=2)
 
     def edit_site(self):
         self.manageSiteGui.withdraw()
@@ -974,7 +1103,7 @@ class App:
         Checkbutton(frame, text="Open Everyday", variable=self.open).grid(row=2, column=2)
 
         self.registerUser = Button(frame, text="Back", command=self.register_user_back).grid(row=4, column=1)
-        self.registerUser = Button(frame, text="Register", command=self.register_login_user).grid(row=4, column=2)
+        self.registerUser = Button(frame, text="Update", command=self.register_login_user).grid(row=4, column=2)
 
 
     ###########################################################################
