@@ -387,11 +387,13 @@ class App:
     def back(self):
         self.navGUI.withdraw()
         self.firstGUI.deiconify()
+        self.currGui = self.firstGUI
 
     ###########################################################################
     def register_user_back(self):
         self.regUser.withdraw()
         self.navGUI.deiconify()
+        self.currGui = self.navGUI
 
     ###########################################################################
     def register_login_user(self):
@@ -401,6 +403,7 @@ class App:
     def register_visitor_back(self):
         self.regVisitor.withdraw()
         self.navGUI.deiconify()
+        self.currGui = self.navGUI
 
     ###########################################################################
     def register_login_visitor(self):
@@ -410,6 +413,7 @@ class App:
     def register_emp_back(self):
         self.regEmp.withdraw()
         self.navGUI.deiconify()
+        self.currGui = self.navGUI
 
     ###########################################################################
     def register_login_emp(self):
@@ -419,6 +423,7 @@ class App:
     def register_empVis_back(self):
         self.regEmpVis.withdraw()
         self.navGUI.deiconify()
+        self.currGui = self.navGUI
 
     ###########################################################################
     def register_login_empVis(self):
@@ -511,13 +516,13 @@ class App:
                                                                                                          column=0)
         self.register = Button(self.manOnlyGUI, text="Manage Event", command=self.manage_event).grid(row=2, column=0)
         self.register = Button(self.manOnlyGUI, text="View Staff", command=self.view_staff).grid(row=3, column=0)
-        self.register = Button(self.manOnlyGUI, text="View Site Report", command=self.view_site_report).grid(row=2,
-                                                                                                             column=0)
+        self.register = Button(self.manOnlyGUI, text="View Site Report", command=self.view_site_report).grid(row=1,
+                                                                                                             column=1)
 
-        self.register = Button(self.manOnlyGUI, text="Take Transit", command=self.take_transit).grid(row=1, column=1)
+        self.register = Button(self.manOnlyGUI, text="Take Transit", command=self.take_transit).grid(row=2, column=1)
         self.register = Button(self.manOnlyGUI, text="View Transit History", command=self.view_transit_history).grid(
-            row=2, column=1)
-        self.register = Button(self.manOnlyGUI, text="Back", command=self.man_only_back).grid(row=3, column=1)
+            row=3, column=1)
+        self.register = Button(self.manOnlyGUI, text="Back", command=self.man_only_back).grid(row=4)
 
     ###########################################################################
     def manager_vis_functionality(self):
@@ -611,30 +616,37 @@ class App:
     def admin_only_back(self):
         self.adminOnlyGUI.withdraw()
         self.firstGUI.deiconify()
+        self.currGui = self.firstGUI
 
     def admin_vis_back(self):
         self.adminVisGUI.withdraw()
         self.firstGUI.deiconify()
+        self.currGui = self.firstGUI
 
     def man_only_back(self):
         self.manOnlyGUI.withdraw()
         self.firstGUI.deiconify()
+        self.currGui = self.firstGUI
 
     def man_vis_back(self):
         self.manVisGUI.withdraw()
         self.firstGUI.deiconify()
+        self.currGui = self.firstGUI
 
     def staff_only_back(self):
         self.staffOnlyGUI.withdraw()
         self.firstGUI.deiconify()
+        self.currGui = self.firstGUI
 
     def staff_vis_back(self):
         self.staffVisGUI.withdraw()
         self.firstGUI.deiconify()
+        self.currGui = self.firstGUI
 
     def vis_back(self):
         self.visitorGUI.withdraw()
         self.firstGUI.deiconify()
+        self.currGui = self.firstGUI
     ###########################################################################
     def view_schedule(self):
         pass
@@ -646,7 +658,92 @@ class App:
         pass
 
     def manage_event(self):
-        pass
+        self.currGui.withdraw()
+        self.manage_event = Toplevel()
+        self.currGui = self.manage_event
+        self.manage_event.title("Manage Event")
+
+        Label(self.manage_event, text="Manage Event").grid(row=0)
+
+        frame = Frame(self.manage_event)
+        frame.grid()
+
+        Label(frame, text="Name ").grid(row=0, column=0)
+        self.name = StringVar()
+        self.name_enter = Entry(frame, textvariable=self.name)
+        self.name_enter.grid(row=0, column=1)
+
+        Label(frame, text="Description Keyword ").grid(row=0, column=2)
+        self.description = StringVar()
+        self.description_enter = Entry(frame, textvariable=self.description)
+        self.description_enter.grid(row=0, column=3)
+
+
+        Label(frame, text="Start Date").grid(row=1, column=0)
+        self.start_date = StringVar()
+        self.start_date_enter = Entry(frame, textvariable=self.start_date)
+        self.start_date_enter.grid(row=1, column=1)
+
+        Label(frame, text="End Date").grid(row=1, column=2)
+        self.end_date = StringVar()
+        self.end_date_enter = Entry(frame, textvariable=self.end_date)
+        self.end_date_enter.grid(row=1, column=3)
+
+        Label(frame, text="Duration Range").grid(row = 2, column = 0)
+        self.duration_lower = StringVar()
+        self.duration_lower_enter = Entry(frame, textvariable=self.duration_lower)
+        self.duration_lower_enter.grid(row = 2, column = 1)
+
+        Label(frame, text=" -- ").grid(row = 2, column = 2)
+        self.duration_upper = StringVar()
+        self.duration_upper_enter = Entry(frame, textvariable=self.duration_upper)
+        self.duration_upper_enter.grid(row = 2, column = 3)
+
+        Label(frame, text="Total Visits Range").grid(row = 2, column = 4)
+        self.visits_lower = StringVar()
+        self.visits_lower_enter = Entry(frame, textvariable=self.visits_lower)
+        self.visits_lower_enter.grid(row = 2, column = 5)
+
+        Label(frame, text=" -- ").grid(row = 2, column = 6)
+        self.visits_upper = StringVar()
+        self.visits_upper_enter = Entry(frame, textvariable=self.visits_upper)
+        self.visits_upper_enter.grid(row = 2, column = 7)
+
+        Label(frame, text="Total Revenue Range").grid(row = 3, column = 0)
+        self.revenue_lower = StringVar()
+        self.revenue_lower_enter = Entry(frame, textvariable=self.revenue_lower)
+        self.revenue_lower_enter.grid(row = 3, column = 1)
+
+        Label(frame, text=" -- ").grid(row = 3, column = 2)
+        self.revenue_upper = StringVar()
+        self.revenue_upper_enter = Entry(frame, textvariable=self.revenue_upper)
+        self.revenue_upper_enter.grid(row = 3, column = 3)
+
+        self.filter = Button(frame, text="Filter", command=self.filter_take_trans).grid(row=4, column=0)
+        self.create = Button(frame, text="Create", command=self.filter_take_trans).grid(row=4, column=1)
+        self.view = Button(frame, text="View/Edit", command=self.filter_take_trans).grid(row=4, column=2)
+        self.delete = Button(frame, text="Delete", command=self.filter_take_trans).grid(row=4, column=3)
+
+
+        frame_tree = Frame(self.manage_event)
+        frame_tree.grid()
+
+        tree = ttk.Treeview(frame_tree, columns=['Name', 'Staff Count', 'Duration (Days)', 'Total Visits', 'Total Revenue'],
+                            show='headings')
+
+        tree.heading('Name', text='Name')
+        tree.heading('Staff Count', text='Staff Count')
+        tree.heading('Duration (Days)', text='Duration (Days)')
+        tree.heading('Total Visits', text='Total Visits')
+        tree.heading('Total Revenue', text="Total Revenue")
+        tree.insert("", "end", values=("1", "2", "3", "4", "6"))
+        tree.insert("", "end", values=("4", "5", "6", "7", "8" ))
+        tree.grid(row=1, column=3)
+
+        frame_under = Frame(self.manage_event)
+        frame_under.grid()
+
+        self.back = Button(frame_under, text="Back", command=self.back_take_trans).grid(row=0, column=0)
 
     def view_visit_history(self):
         pass
@@ -657,6 +754,7 @@ class App:
     def view_transit_history(self):
         self.currGui.withdraw()
         self.view_tran = Toplevel()
+        self.currGui = self.view_tran
         self.view_tran.title("Transit History")
 
         Label(self.view_tran, text="Transit History").grid(row=0)
@@ -769,6 +867,7 @@ class App:
     def manage_user(self):
         self.currGui.withdraw()
         self.manageUserGui = Toplevel()
+        self.currGui = self.manageUserGui
         self.manageUserGui.title("Manage User")
 
         Label(self.manageUserGui, text="Manage User").grid(row=0)
@@ -973,6 +1072,7 @@ class App:
     def manage_site(self):
         self.currGui.withdraw()
         self.manageSiteGui = Toplevel()
+        self.currGui = self.manage_site
         self.manageSiteGui.title("Manage Site")
 
         Label(self.manageSiteGui, text="Manage Site").grid(row=0)
@@ -1110,6 +1210,7 @@ class App:
     def take_transit(self):
         self.currGui.withdraw()
         self.take_tran = Toplevel()
+        self.currGui = self.take_transit
         self.take_tran.title("Take Transit")
 
         Label(self.take_tran, text="Take Transit").grid(row=0)
