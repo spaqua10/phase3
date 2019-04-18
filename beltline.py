@@ -432,19 +432,19 @@ class App:
     ###########################################################################
     def user_functionality(self):
         self.firstGUI.withdraw()
-        self.navGUI = Toplevel()
-        self.currGui = self.navGUI
-        self.navGUI.title("User Functionality")
+        self.user_func_GUI = Toplevel()
+        self.currGui = self.user_func_GUI
+        self.user_func_GUI.title("User Functionality")
 
-        Label(self.navGUI, text="User Functionality").grid(row=1)
+        Label(self.user_func_GUI, text="User Functionality").grid(row=1)
 
-        frame = Frame(self.navGUI)
+        frame = Frame(self.user_func_GUI)
         frame.grid()
 
 
-        self.register = Button(self.navGUI, text="Take Transit", command=self.take_transit).grid(row=2)
-        self.register = Button(self.navGUI, text="View Transit History", command=self.view_transit_history).grid(row=3)
-        self.register = Button(self.navGUI, text="Back", command=self.register_employee).grid(row=4)
+        self.register = Button(self.user_func_GUI, text="Take Transit", command=self.take_transit).grid(row=2)
+        self.register = Button(self.user_func_GUI, text="View Transit History", command=self.view_transit_history).grid(row=3)
+        self.register = Button(self.user_func_GUI, text="Back", command=self.user_func_back).grid(row=4)
 
     ###########################################################################
     def admin_only_functionality(self):
@@ -613,6 +613,11 @@ class App:
             row=6)
         self.register = Button(self.visitorGUI, text="Back", command=self.vis_back).grid(row=7)
     ###########################################################################
+    def user_func_back(self):
+        self.user_func_GUI.withdraw()
+        self.firstGUI.deiconify()
+        self.currGui = self.firstGUI
+
     def admin_only_back(self):
         self.adminOnlyGUI.withdraw()
         self.firstGUI.deiconify()
@@ -652,10 +657,148 @@ class App:
         pass
 
     def view_site_report(self):
+        self.currGui.withdraw()
+        self.site_report = Toplevel()
+        self.currGui = self.site_report
+        self.site_report.title("Site Report")
+
+        Label(self.site_report, text="Site Report").grid(row=0)
+
+        frame = Frame(self.site_report)
+        frame.grid()
+
+        Label(frame, text="Start Date").grid(row=0, column=0)
+        self.start_date = StringVar()
+        self.start_date_enter = Entry(frame, textvariable=self.start_date)
+        self.start_date_enter.grid(row=0, column=1)
+
+        Label(frame, text="End Date").grid(row=0, column=2)
+        self.end_date = StringVar()
+        self.end_date_enter = Entry(frame, textvariable=self.end_date)
+        self.end_date_enter.grid(row=0, column=3)
+
+        Label(frame, text="Event Count Range").grid(row=1, column=0)
+        self.event_count_lower = IntVar()
+        self.event_count_lower_enter = Entry(frame, textvariable=self.event_count_lower)
+        self.event_count_lower_enter.grid(row=1, column=1)
+
+        Label(frame, text=" -- ").grid(row=1, column=2)
+        self.event_count_upper = IntVar()
+        self.event_count_upper_enter = Entry(frame, textvariable=self.event_count_upper)
+        self.event_count_upper_enter.grid(row=1, column=3)
+
+        Label(frame, text="Staff Count Range").grid(row = 1, column = 4)
+        self.staff_count_lower = IntVar()
+        self.staff_count_lower_enter = Entry(frame, textvariable=self.staff_count_lower)
+        self.staff_count_lower_enter.grid(row = 1, column = 5)
+
+        Label(frame, text=" -- ").grid(row = 1, column = 6)
+        self.staff_count_upper = IntVar()
+        self.staff_count_upper_enter = Entry(frame, textvariable=self.staff_count_upper)
+        self.staff_count_upper_enter.grid(row = 1, column = 7)
+
+        Label(frame, text="Total Visits Range").grid(row = 2, column = 0)
+        self.visits_lower = IntVar()
+        self.visits_lower_enter = Entry(frame, textvariable=self.visits_lower)
+        self.visits_lower_enter.grid(row = 2, column = 1)
+
+        Label(frame, text=" -- ").grid(row = 2, column = 2)
+        self.visits_upper = IntVar()
+        self.visits_upper_enter = Entry(frame, textvariable=self.visits_upper)
+        self.visits_upper_enter.grid(row = 2, column = 3)
+
+        Label(frame, text="Total Revenue Range").grid(row = 2, column = 4)
+        self.revenue_lower = IntVar()
+        self.revenue_lower_enter = Entry(frame, textvariable=self.revenue_lower)
+        self.revenue_lower_enter.grid(row = 2, column = 5)
+
+        Label(frame, text=" -- ").grid(row = 2, column = 6)
+        self.revenue_upper = IntVar()
+        self.revenue_upper_enter = Entry(frame, textvariable=self.revenue_upper)
+        self.revenue_upper_enter.grid(row = 2, column = 7)
+
+        self.filter = Button(frame, text="Filter", command=self.filter_take_trans).grid(row=4, column=3)
+        self.create = Button(frame, text="Daily Detail", command=self.daily_detail).grid(row=4, column=4)
+
+        frame_tree = Frame(self.site_report)
+        frame_tree.grid()
+
+        tree = ttk.Treeview(frame_tree, columns=['Date', 'Event Count', 'Staff Count', 'Total Visits', 'Total Revenue ($)'],
+                            show='headings')
+
+        tree.heading('Date', text='Date')
+        tree.heading('Event Count', text='Event Count')
+        tree.heading('Staff Count', text='Staff Count')
+        tree.heading('Total Visits', text='Total Visits')
+        tree.heading('Total Revenue ($)', text="Total Revenue ($)")
+        tree.insert("", "end", values=("1", "2", "3", "4", "6"))
+        tree.insert("", "end", values=("4", "5", "6", "7", "8" ))
+        tree.grid(row=1, column=3)
+
+        frame_under = Frame(self.site_report)
+        frame_under.grid()
+
+        self.back = Button(frame_under, text="Back", command=self.back_take_trans).grid(row=0, column=0)
+
+    def daily_detail(self):
         pass
 
     def view_staff(self):
-        pass
+        self.currGui.withdraw()
+        self.view_staff = Toplevel()
+        self.currGui = self.view_staff
+        self.view_staff.title("View / Manage Staff")
+
+        Label(self.view_staff, text="View / Manage Staff").grid(row=0)
+
+        frame = Frame(self.view_staff)
+        frame.grid()
+
+        Label(frame, text="Site").grid(row=0, column=0)
+        self.site = StringVar()
+        choices_type = ['MARTA', 'Bus', 'Bike', 'All']
+        self.site.set('All')
+        self.popup = OptionMenu(frame, self.site, *choices_type)
+        self.popup.grid(row=0, column=1)
+
+        Label(frame, text="First Name").grid(row=1, column=0)
+        self.fname = StringVar()
+        self.fname_enter = Entry(frame, textvariable=self.fname)
+        self.fname_enter.grid(row=1, column=1)
+
+        Label(frame, text="Last name").grid(row=1, column=2)
+        self.lname = StringVar()
+        self.lname_enter = Entry(frame, textvariable=self.lname)
+        self.lname_enter.grid(row=1, column=3)
+
+        Label(frame, text="Start Date").grid(row=2, column=0)
+        self.start_date = StringVar()
+        self.start_date_enter = Entry(frame, textvariable=self.start_date)
+        self.start_date_enter.grid(row=2, column=1)
+
+        Label(frame, text="End Date").grid(row = 2, column = 2)
+        self.end_date = StringVar()
+        self.end_date_enter = Entry(frame, textvariable=self.end_date)
+        self.end_date_enter.grid(row = 2, column = 3)
+
+        self.filter = Button(frame, text="Filter", command=self.filter_take_trans).grid(row=3, column=2)
+
+        frame_tree = Frame(self.view_staff)
+        frame_tree.grid()
+
+        tree = ttk.Treeview(frame_tree, columns=['Staff Name', '# Event Shifts'],
+                            show='headings')
+
+        tree.heading('Staff Name', text='Name')
+        tree.heading('# Event Shifts', text='Staff Count')
+        tree.insert("", "end", values=("1", "2"))
+        tree.insert("", "end", values=("4", "5"))
+        tree.grid(row=1, column=3)
+
+        frame_under = Frame(self.view_staff)
+        frame_under.grid()
+
+        self.back = Button(frame_under, text="Back", command=self.back_take_trans).grid(row=0, column=0)
 
     def manage_event(self):
         self.currGui.withdraw()
@@ -690,38 +833,38 @@ class App:
         self.end_date_enter.grid(row=1, column=3)
 
         Label(frame, text="Duration Range").grid(row = 2, column = 0)
-        self.duration_lower = StringVar()
+        self.duration_lower = IntVar()
         self.duration_lower_enter = Entry(frame, textvariable=self.duration_lower)
         self.duration_lower_enter.grid(row = 2, column = 1)
 
         Label(frame, text=" -- ").grid(row = 2, column = 2)
-        self.duration_upper = StringVar()
+        self.duration_upper = IntVar()
         self.duration_upper_enter = Entry(frame, textvariable=self.duration_upper)
         self.duration_upper_enter.grid(row = 2, column = 3)
 
         Label(frame, text="Total Visits Range").grid(row = 2, column = 4)
-        self.visits_lower = StringVar()
+        self.visits_lower = IntVar()
         self.visits_lower_enter = Entry(frame, textvariable=self.visits_lower)
         self.visits_lower_enter.grid(row = 2, column = 5)
 
         Label(frame, text=" -- ").grid(row = 2, column = 6)
-        self.visits_upper = StringVar()
+        self.visits_upper = IntVar()
         self.visits_upper_enter = Entry(frame, textvariable=self.visits_upper)
         self.visits_upper_enter.grid(row = 2, column = 7)
 
         Label(frame, text="Total Revenue Range").grid(row = 3, column = 0)
-        self.revenue_lower = StringVar()
+        self.revenue_lower = IntVar()
         self.revenue_lower_enter = Entry(frame, textvariable=self.revenue_lower)
         self.revenue_lower_enter.grid(row = 3, column = 1)
 
         Label(frame, text=" -- ").grid(row = 3, column = 2)
-        self.revenue_upper = StringVar()
+        self.revenue_upper = IntVar()
         self.revenue_upper_enter = Entry(frame, textvariable=self.revenue_upper)
         self.revenue_upper_enter.grid(row = 3, column = 3)
 
         self.filter = Button(frame, text="Filter", command=self.filter_take_trans).grid(row=4, column=0)
-        self.create = Button(frame, text="Create", command=self.filter_take_trans).grid(row=4, column=1)
-        self.view = Button(frame, text="View/Edit", command=self.filter_take_trans).grid(row=4, column=2)
+        self.create = Button(frame, text="Create", command=self.create_event).grid(row=4, column=1)
+        self.view = Button(frame, text="View/Edit", command=self.view_edit_event).grid(row=4, column=2)
         self.delete = Button(frame, text="Delete", command=self.filter_take_trans).grid(row=4, column=3)
 
 
@@ -744,6 +887,153 @@ class App:
         frame_under.grid()
 
         self.back = Button(frame_under, text="Back", command=self.back_take_trans).grid(row=0, column=0)
+
+    def view_edit_event(self):
+        self.currGui.withdraw()
+        self.view_event = Toplevel()
+        self.currGui = self.view_event
+        self.view_event.title("View/Edit Event")
+
+        Label(self.view_event, text="View/Edit Event").grid(row=0)
+
+        frame = Frame(self.view_event)
+        frame.grid()
+
+        ''' TODO: Change the Labels below to data from SQL. Prepopulate everything else with SQL data'''
+
+        Label(frame, text="Name ").grid(row=0, column=0)
+        Label(frame, text="Event Name").grid(row=0, column=1)
+
+        Label(frame, text="Price ($) ").grid(row=0, column=2)
+        Label(frame, text="25").grid(row=0, column=3)
+
+        Label(frame, text="Start Date").grid(row=1, column=0)
+        Label(frame, text='2019-02-01').grid(row=1, column=1)
+
+        Label(frame, text="End Date").grid(row=1, column=2)
+        Label(frame, text="2019-02-01").grid(row=1, column=3)
+
+        Label(frame, text="Minimum Staff Required").grid(row = 2, column = 0)
+        Label(frame, text='4').grid(row = 2, column = 1)
+
+        Label(frame, text="Capacity").grid(row = 2, column = 2)
+        Label(frame, text='100').grid(row = 2, column = 3)
+
+        Label(frame, text="Staff Assigned").grid(row = 3, column = 0)
+        list = Listbox(frame, selectmode=MULTIPLE)
+        list.insert(0, 'Staff 1')
+        list.insert(1, 'Staff 2')
+        list.insert(2, 'Staff 3')
+        list.grid(row=3, column = 1)
+
+        Label(frame, text="Description").grid(row = 4, column = 0)
+        self.description = StringVar()
+        self.description_entry = Entry(frame, textvariable=self.description)
+        #self.description = Text(frame)
+        #self.description.config(borderwidth=5)
+        #self.description.insert(END,'description goes here')
+        self.description_entry.grid(row = 4, column = 1)
+
+        Label(frame, text="Daily Visits Range").grid(row = 5, column = 0)
+        self.visits_lower = IntVar()
+        self.visits_lower_enter = Entry(frame, textvariable=self.visits_lower)
+        self.visits_lower_enter.grid(row = 5, column = 1)
+
+        Label(frame, text=" -- ").grid(row = 5, column = 2)
+        self.visits_upper = IntVar()
+        self.visits_upper_enter = Entry(frame, textvariable=self.visits_upper)
+        self.visits_upper_enter.grid(row = 5, column = 3)
+
+        Label(frame, text="Daily Revenue Range").grid(row = 5, column = 4)
+        self.revenue_lower = IntVar()
+        self.revenue_lower_enter = Entry(frame, textvariable=self.revenue_lower)
+        self.revenue_lower_enter.grid(row = 5, column = 5)
+
+        Label(frame, text=" -- ").grid(row = 5, column = 6)
+        self.revenue_upper = IntVar()
+        self.revenue_upper_enter = Entry(frame, textvariable=self.revenue_upper)
+        self.revenue_upper_enter.grid(row = 5, column = 7)
+
+        self.filter = Button(frame, text="Filter", command=self.filter_take_trans).grid(row=6, column=0)
+        self.create = Button(frame, text="Update", command=self.filter_take_trans).grid(row=6, column=1)
+
+
+        frame_tree = Frame(self.view_event)
+        frame_tree.grid()
+
+        tree = ttk.Treeview(frame_tree, columns=['Date', 'Daily Visits', 'Daily Revenue'],
+                            show='headings')
+
+        tree.heading('Date', text='Date')
+        tree.heading('Daily Visits', text='Daily Visits')
+        tree.heading('Daily Revenue', text='Daily Revenue')
+        tree.insert("", "end", values=("1", "2", "3"))
+        tree.insert("", "end", values=("4", "5", "6"))
+        tree.grid(row=1, column=3)
+
+        frame_under = Frame(self.view_event)
+        frame_under.grid()
+
+        self.back = Button(frame_under, text="Back", command=self.back_take_trans).grid(row=0, column=0)
+
+    def create_event(self):
+        self.currGui.withdraw()
+        self.create_event = Toplevel()
+        self.currGui = self.create_event
+        self.create_event.title("Create Event")
+
+        Label(self.create_event, text="Create Event").grid(row=0)
+
+        frame = Frame(self.create_event)
+        frame.grid()
+
+        Label(frame, text="Name ").grid(row=0, column=0)
+        self.name = StringVar()
+        self.name_entry = Entry(frame, textvariable=self.name)
+        self.name_entry.grid(row=0, column = 1)
+
+        Label(frame, text="Price ($) ").grid(row=1, column=0)
+        self.price = IntVar()
+        self.price_entry = Entry(frame, textvariable=self.price)
+        self.price_entry.grid(row=1, column=1)
+
+        Label(frame, text="Capacity").grid(row = 1, column = 2)
+        self.capacity = IntVar()
+        self.capacity_entry = Entry(frame, textvariable=self.capacity)
+        self.capacity_entry.grid(row=1, column=3)
+
+        Label(frame, text="Minimum Staff Required").grid(row = 1, column = 4)
+        self.min_staff = IntVar()
+        self.min_staff_entry = Entry(frame, textvariable=self.min_staff)
+        self.min_staff_entry.grid(row=1, column=5)
+
+        Label(frame, text="Start Date").grid(row=2, column=0)
+        self.start_date = StringVar()
+        self.start_date_enter = Entry(frame, textvariable=self.start_date)
+        self.start_date_enter.grid(row=2, column=1)
+
+        Label(frame, text="End Date").grid(row=2, column=2)
+        self.end_date = StringVar()
+        self.end_date_enter = Entry(frame, textvariable=self.end_date)
+        self.end_date_enter.grid(row=2, column=3)
+
+        Label(frame, text="Description").grid(row = 3, column = 0)
+        self.description = StringVar()
+        self.description_entry = Entry(frame, textvariable=self.description)
+        #self.description = Text(frame)
+        #self.description.config(borderwidth=5)
+        #self.description.insert(END,'description goes here')
+        self.description_entry.grid(row = 3, column = 1)
+
+        Label(frame, text="Assign Staff").grid(row = 4, column = 0)
+        list = Listbox(frame, selectmode=MULTIPLE)
+        list.insert(0, 'Staff 1')
+        list.insert(1, 'Staff 2')
+        list.insert(2, 'Staff 3')
+        list.grid(row=4, column = 1)
+
+        self.back = Button(frame, text="Back", command=self.back_take_trans).grid(row=5, column=0)
+        self.create = Button(frame, text="Create", command=self.filter_take_trans).grid(row=5, column=1)
 
     def view_visit_history(self):
         pass
