@@ -68,7 +68,7 @@ class App:
 
             self.db = pymysql.connect(host="localhost",
                                       user="root",
-                                      passwd="HelloWorld8954",  # insert your db password here
+                                      passwd="savirahe",  # insert your db password here
                                       db="beltLine")
             return self.db
         except:
@@ -410,7 +410,40 @@ class App:
 
     ###########################################################################
     def register_login_user(self):
-        pass
+        if self.user.get() == "":
+            messagebox.showwarning("Username", "Please enter a Username")
+        elif self.password.get() == "":
+            messagebox.showwarning("Password", "Please enter a Password")
+        elif len(self.password.get()) < 8:
+            messagebox.showwarning("Password", "Password must be at least 8 characters")
+        elif self.password.get() != self.password_confirm.get():
+            messagebox.showwarning("Password and Confirm Password", "Password and Confirm Password do not match")
+        elif self.fname.get() == "":
+            messagebox.showwarning("First Name", "Please enter your First Name")
+        elif self.lname.get() == "":
+            messagebox.showwarning("Last Name", "Please enter your Last Name")
+        elif self.email.get() == "":
+            messagebox.showwarning("Email", "Please enter at least one email")
+        else:
+            if self.fname.get() == "":
+                self.fname.set("NULL")
+            if self.lname.get() == "":
+                self.lname.set("NULL")
+            query_check = "Select Username from NormalUser where Username=('%s')" % (self.user.get())
+            name = self.cursor.execute(query_check)
+            if name == 0:
+                query = "Insert into NormalUser values('%s', '%s', '%s', '%s', 'Pending', 'User')" % (self.user.get(), self.password.get(), self.fname.get(), self.lname.get())
+                self.cursor.execute(query)
+                if self.email.get() != "":
+                    emails = [x.strip() for x in self.email.get().split(',')]
+                    for email in emails:
+                        queryb = "Insert into Email values('%s', '%s')" % (self.user.get(), email)
+                        self.cursor.execute(queryb)
+                self.db.commit()
+                self.regUser.withdraw()
+                self.login()
+            else:
+                messagebox.showwarning("Username", "This username is taken by another user. Please enter a different username")
 
     ###########################################################################
     def register_visitor_back(self):
@@ -420,7 +453,42 @@ class App:
 
     ###########################################################################
     def register_login_visitor(self):
-        pass
+        if self.user.get() == "":
+            messagebox.showwarning("Username", "Please enter a Username")
+        elif self.password.get() == "":
+            messagebox.showwarning("Password", "Please enter a Password")
+        elif len(self.password.get()) < 8:
+            messagebox.showwarning("Password", "Password must be at least 8 characters")
+        elif self.password.get() != self.password_confirm.get():
+            messagebox.showwarning("Password and Confirm Password", "Password and Confirm Password do not match")
+        elif self.fname.get() == "":
+            messagebox.showwarning("First Name", "Please enter your First Name")
+        elif self.lname.get() == "":
+            messagebox.showwarning("Last Name", "Please enter your Last Name")
+        elif self.email.get() == "":
+            messagebox.showwarning("Email", "Please enter at least one email")
+        else:
+            if self.fname.get() == "":
+                self.fname.set("NULL")
+            if self.lname.get() == "":
+                self.lname.set("NULL")
+            query_check = "Select Username from NormalUser where Username=('%s')" % (self.user.get())
+            name = self.cursor.execute(query_check)
+            if name == 0:
+                query = "Insert into NormalUser values('%s', '%s', '%s', '%s', 'Pending', 'Visitor')" % (self.user.get(), self.password.get(), self.fname.get(), self.lname.get())
+                self.cursor.execute(query)
+                queryc = "Insert into Visitor values('%s')" % (self.user.get())
+                self.cursor.execute(queryc)
+                if self.email.get() != "":
+                    emails = [x.strip() for x in self.email.get().split(',')]
+                    for email in emails:
+                        queryb = "Insert into Email values('%s', '%s')" % (self.user.get(), email)
+                        self.cursor.execute(queryb)
+                self.db.commit()
+                self.regVisitor.withdraw()
+                self.login()
+            else:
+                messagebox.showwarning("Username", "This username is taken by another user. Please enter a different username")
 
     ###########################################################################
     def register_emp_back(self):
@@ -430,7 +498,50 @@ class App:
 
     ###########################################################################
     def register_login_emp(self):
-        pass
+        if self.user.get() == "":
+            messagebox.showwarning("Username", "Please enter a Username")
+        elif self.password.get() == "":
+            messagebox.showwarning("Password", "Please enter a Password")
+        elif len(self.password.get()) < 8:
+            messagebox.showwarning("Password", "Password must be at least 8 characters")
+        elif self.password.get() != self.password_confirm.get():
+            messagebox.showwarning("Password and Confirm Password", "Password and Confirm Password do not match")
+        elif self.fname.get() == "":
+            messagebox.showwarning("First Name", "Please enter your First Name")
+        elif self.lname.get() == "":
+            messagebox.showwarning("Last Name", "Please enter your Last Name")
+        elif self.email.get() == "":
+            messagebox.showwarning("Email", "Please enter at least one email")
+        elif self.phone.get() == 0:
+            messagebox.showwarning("Phone", "Please enter a phone number")
+        elif self.address.get() == "":
+            messagebox.showwarning('Address',"Please enter a address")
+        elif self.city.get() == "":
+            messagebox.showwarning("City", "Please enter a city")
+        elif self.zip.get() == 0:
+            messagebox.showwarning("Zipcode", "Please enter a zipcode")
+        else:
+            query_check = "Select Username from NormalUser where Username=('%s')" % (self.user.get())
+            name = self.cursor.execute(query_check)
+            if name == 0:
+                query = "Insert into NormalUser values('%s', '%s', '%s', '%s', 'Pending', 'Employee')" % (self.user.get(), self.password.get(), self.fname.get(), self.lname.get())
+                self.cursor.execute(query)
+                queryc = "Insert into Employee values('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')" % (self.user.get(), '', self.phone.get(), self.address.get(), self.city.get(), self.state.get(), self.zip.get(), self.userType.get())
+                self.cursor.execute(queryc)
+                if self.email.get() != "":
+                    emails = [x.strip() for x in self.email.get().split(',')]
+                    for email in emails:
+                        queryb = "Insert into Email values('%s', '%s')" % (self.user.get(), email)
+                        self.cursor.execute(queryb)
+                self.db.commit()
+                self.regEmp.withdraw()
+                self.login()
+                #if self.userType.get() == "Manager":
+                #    self.manager_only_functionality()
+                #else:
+                #    self.staff_only_functionality()
+            else:
+                messagebox.showwarning("Username", "This username is taken by another user. Please enter a different username")
 
     ###########################################################################
     def register_empVis_back(self):
@@ -440,7 +551,52 @@ class App:
 
     ###########################################################################
     def register_login_empVis(self):
-        pass
+        if self.user.get() == "":
+            messagebox.showwarning("Username", "Please enter a Username")
+        elif self.password.get() == "":
+            messagebox.showwarning("Password", "Please enter a Password")
+        elif len(self.password.get()) < 8:
+            messagebox.showwarning("Password", "Password must be at least 8 characters")
+        elif self.password.get() != self.password_confirm.get():
+            messagebox.showwarning("Password and Confirm Password", "Password and Confirm Password do not match")
+        elif self.fname.get() == "":
+            messagebox.showwarning("First Name", "Please enter your First Name")
+        elif self.lname.get() == "":
+            messagebox.showwarning("Last Name", "Please enter your Last Name")
+        elif self.email.get() == "":
+            messagebox.showwarning("Email", "Please enter at least one email")
+        elif self.phone.get() == 0:
+            messagebox.showwarning("Phone", "Please enter a phone number")
+        elif self.address.get() == "":
+            messagebox.showwarning('Address',"Please enter a address")
+        elif self.city.get() == "":
+            messagebox.showwarning("City", "Please enter a city")
+        elif self.zip.get() == 0:
+            messagebox.showwarning("Zipcode", "Please enter a zipcode")
+        else:
+            query_check = "Select Username from NormalUser where Username=('%s')" % (self.user.get())
+            name = self.cursor.execute(query_check)
+            if name == 0:
+                query = "Insert into NormalUser values('%s', '%s', '%s', '%s', 'Pending', 'Employee, Visitor')" % (self.user.get(), self.password.get(), self.fname.get(), self.lname.get())
+                self.cursor.execute(query)
+                queryc = "Insert into Employee values('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')" % (self.user.get(), '', self.phone.get(), self.address.get(), self.city.get(), self.state.get(), self.zip.get(), self.userType.get())
+                self.cursor.execute(queryc)
+                queryd = "Insert into Visitor values('%s')" % (self.user.get())
+                self.cursor.execute(queryd)
+                if self.email.get() != "":
+                    emails = [x.strip() for x in self.email.get().split(',')]
+                    for email in emails:
+                        queryb = "Insert into Email values('%s', '%s')" % (self.user.get(), email)
+                        self.cursor.execute(queryb)
+                self.db.commit()
+                self.regEmpVis.withdraw()
+                self.login()
+                #if self.userType.get() == "Manager":
+                #    self.manager_vis_functionality()
+                #else:
+                #    self.staff_vis_functionality()
+            else:
+                messagebox.showwarning("Username", "This username is taken by another user. Please enter a different username")
 
     ###########################################################################
     def user_functionality(self):
@@ -2167,22 +2323,14 @@ class App:
         frame = Frame(self.site_detail)
         frame.grid()
 
-        Label(frame, text="Site ").grid(row=0, column=0)
-        self.site = StringVar()
-        self.site_enter = Entry(frame, textvariable=self.site)
-        self.site_enter.grid(row=0, column=1)
+        Label(frame, text="Site: ").grid(row=0, column=0)
+        Label(frame, text="Temp Site Name").grid(row=0, column=1)
 
         Label(frame, text="Open Everyday: ").grid(row=0, column=2)
-        self.trans_type = StringVar()
-        choices_type = ['Yes', 'No', 'All']
-        self.trans_type.set('All')
-        self.popup = OptionMenu(frame, self.trans_type, *choices_type)
-        self.popup.grid(row=0, column=3)
+        Label(frame, text="Yes").grid(row=0, column=3)
 
         Label(frame, text="Address ").grid(row=1, column=0)
-        self.address = StringVar()
-        self.address_enter = Entry(frame, textvariable=self.address)
-        self.address_enter.grid(row=1, column=1)
+        Label(frame, text="Temp address").grid(row=1, column=1)
 
         frame_under = Frame(self.site_detail)
         frame_under.grid()
