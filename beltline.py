@@ -6,7 +6,6 @@ class App:
 
     ###########################################################################
     # this function pulls up the initial gui, of the initial log in window
-
     def __init__(self, master):
         self.currGui = None
         self.prevGUI = None
@@ -30,7 +29,7 @@ class App:
         frame = Frame(master)
         frame.grid()
 
-        Label(root, text="Email:").grid(row=2)
+        Label(root, text="Username:").grid(row=2)
 
         self.user = StringVar()
         self.usernameEnter = Entry(master, textvariable=self.user)
@@ -49,40 +48,14 @@ class App:
         self.new2 = Button(master, text="Register", command=self.register_nav)
         self.new2.grid(row=7)
 
-        self.new3 = Button(master, text="User Func", command=self.user_functionality)
-        self.new3.grid(row=8)
+        self.new3 = Button(master, text = "event detail", command = self.visitor_event_detail)
+        self.new3.grid(row = 8)
 
-        self.new4 = Button(master, text="Admin Only Func", command=self.admin_only_functionality)
-        self.new4.grid(row=9)
+        self.connect()
 
-        self.new5 = Button(master, text="Admin-Visitor Func", command=self.admin_vis_functionality)
-        self.new5.grid(row=10)
+        self.cursor = self.db.cursor()
 
-        self.new6 = Button(master, text="Manager Only Func", command=self.manager_only_functionality)
-        self.new6.grid(row=11)
-
-        self.new7 = Button(master, text="Manager-Visitor Func", command=self.manager_vis_functionality)
-        self.new7.grid(row=12)
-
-        self.new4 = Button(master, text="Staff Only Func", command=self.staff_only_functionality)
-        self.new4.grid(row=13)
-
-        self.new5 = Button(master, text="Staff-Visit Fun", command=self.staff_visitor_functionality)
-        self.new5.grid(row=14)
-
-        self.new6 = Button(master, text="Visit History", command=self.visit_history)
-        self.new6.grid(row=15)
-
-        # self.connect()
-        # query = ("SELECT fname FROM EMPLOYEE")
-        # cursor = self.db.cursor()
-        # cursor.execute(query)
-        # names = cursor.fetchall()
-        # curr = 8
-        # for x in names:
-        #    Label(self.new2, text=x).grid(row = curr)
-        #    curr = curr + 1
-        # Label(self.new2, text=names).grid(row = 8)
+        print(self.userType)
 
     ###########################################################################
     # this function connects to the db
@@ -95,8 +68,8 @@ class App:
 
             self.db = pymysql.connect(host="localhost",
                                       user="root",
-                                      passwd="",  # insert your db password here
-                                      db="BeltLine")
+                                      passwd="HelloWorld8954",  # insert your db password here
+                                      db="beltLine")
             return self.db
         except:
             messagebox.showwarning("Internet?", "Please check your internet connection.")
@@ -123,23 +96,48 @@ class App:
 
     ###########################################################################
     def login(self):
-        #User Only
-        if self.userType == "User" :
-            self.user_functionality()
+        userTypeQuery = ("SELECT User_Type FROM normaluser WHERE Username ='" + self.user.get().__str__() + "'")
+        self.cursor.execute(userTypeQuery)
+        self.userType = None
+        try:
+            self.userType = self.cursor.fetchone()[0]
+        except:
+            messagebox.showinfo("Error!", "We Could Not Find a User With That Username")
 
-        #Visitor Only
+        # User Only
+        if self.userType == "User":
+           self.user_functionality()
+
+
         elif self.userType == "Visitor":
             self.visitor_functionality()
 
-        #Employee Only
+        # Employee Only
         elif self.userType == "Employee":
-            self.UserSubtype = "Staff"
-            #TODO Implement Query From Employee Table
+            subTypeQuery = ("SELECT Employee_Type FROM employee WHERE Username = '" + self.user.get().__str__() + "'")
+            self.cursor.execute(subTypeQuery)
+            self.UserSubtype = self.cursor.fetchone()[0]
 
-        #Employee and Visitor
-        elif self.userType == "Employee, Visitor":
-            #TODO Currently Fixing This
-            pass
+            if self.UserSubtype == "Staff":
+                self.staff_only_functionality()
+            elif self.UserSubtype == "Admin":
+                self.admin_only_functionality()
+            elif self.UserSubtype == "Manager":
+                self.admin_only_functionality()
+
+        # Employee and Visitor
+        if self.userType == "Employee, Visitor":
+            subTypeTwoQuery = ("SELECT Employee_Type FROM employee WHERE Username = '" + self.user.get().__str__() + "'")
+            self.cursor.execute(subTypeTwoQuery)
+            self.UserSubtype = self.cursor.fetchone()[0]
+
+            if self.UserSubtype == "Staff":
+                self.staff_visitor_functionality()
+            elif self.UserSubtype == "Admin":
+                self.admin_vis_functionality()
+            elif self.UserSubtype == "Manager":
+                self.manager_vis_functionality()
+
     ###########################################################################
     # TODO: still need to finish this, the screen is not complete yet
     def register_user(self):
@@ -1207,9 +1205,9 @@ class App:
         self.phone_enter.grid(row=2, column=3)
 
         Label(frame, text="Address: ").grid(row=3, column=0)
-        self.address = StringVar()
-        self.address_enter = Entry(frame, textvariable=self.address)
-        self.address_enter.grid(row=3, column=1)
+        #TODO Rewrite This with Query To Get Address
+        self.address = "Temp Address"
+        Label(frame, text = self.address).grid(row=3, column=1)
 
         Label(frame, text="Email: ").grid(row=4, column=0)
         self.email = StringVar()
@@ -1811,44 +1809,36 @@ class App:
         frame.grid()
 
         Label(frame, text="Event: ").grid(row=0, column=0)
-        self.event = StringVar()
-        self.event_enter = Entry(frame, textvariable=self.event)
-        self.event_enter.grid(row=0, column=1)
+        self.eventName = "Temp Name"
+        Label(frame, text = self.eventName).grid(row=0, column=1)
 
         Label(frame, text="Site: ").grid(row=0, column=2)
-        self.site = StringVar()
-        self.site_enter = Entry(frame, textvariable=self.site)
-        self.site_enter.grid(row=0, column=3)
+        self.siteName = "Temp Site Name"
+        Label(frame, text = self.siteName).grid(row=0, column=3)
 
         Label(frame, text="Start Date: ").grid(row=1, column=0)
-        self.start_date_detail = StringVar()
-        self.start_date_detail_enter = Entry(frame, textvariable=self.start_date_detail)
-        self.start_date_detail_enter.grid(row=1, column=1)
+        self.startDate = "Temp Start Date"
+        Label(frame, text = self.startDate).grid(row=1, column=1)
 
         Label(frame, text="End Date: ").grid(row=1, column=2)
-        self.end_date_detail = StringVar()
-        self.end_date_detail_enter = Entry(frame, textvariable=self.end_date_detail)
-        self.end_date_detail_enter.grid(row=1, column=3)
+        self.endDate = "Temp End Date"
+        Label(frame, text = self.endDate).grid(row=1, column=3)
 
         Label(frame, text="Duration Days: ").grid(row=1, column=4)
-        self.duration_days = StringVar()
-        self.duration_days_enter = Entry(frame, textvariable=self.duration_days)
-        self.duration_days_enter.grid(row=1, column=5)
+        self.durationDays = "Temp Duration Days"
+        Label(frame, text = self.durationDays).grid(row=1, column=5)
 
         Label(frame, text="Staffs Assigned: ").grid(row=2, column=0)
-        self.staff_assigned = StringVar()
-        self.staff_assigned_enter = Entry(frame, textvariable=self.staff_assigned)
-        self.staff_assigned_enter.grid(row=2, column=1)
+        self.staffsAssigned = "Temp Staff Assigned"
+        Label(frame, text = self.staffsAssigned).grid(row=2, column=1)
 
         Label(frame, text="Capacity: ").grid(row=2, column=2)
-        self.capacity = StringVar()
-        self.capacity_enter = Entry(frame, textvariable=self.capacity)
-        self.capacity_enter.grid(row=2, column=3)
+        self.capacity = "Temp Capacity"
+        Label(frame, text = self.capacity).grid(row=2, column=3)
 
         Label(frame, text="Price:  ").grid(row=2, column=4)
-        self.price = StringVar()
-        self.price_enter = Entry(frame, textvariable=self.price)
-        self.price_enter.grid(row=2, column=5)
+        self.price = "Temp Price"
+        Label(frame, text = self.price).grid(row=2, column=5)
 
         Label(frame, text="Description:  ").grid(row=3, column=0)
         self.description = StringVar()
@@ -1974,35 +1964,29 @@ class App:
         frame.grid()
 
         Label(frame, text="Event: ").grid(row=0, column=0)
-        self.event = StringVar()
-        self.event_enter = Entry(frame, textvariable=self.event)
-        self.event_enter.grid(row=0, column=1)
+        self.eventName = "Temp Event Name"
+        Label(frame, text = self.eventName).grid(row=0, column=1)
 
         Label(frame, text="Site: ").grid(row=0, column=2)
-        self.site = StringVar()
-        self.site_enter = Entry(frame, textvariable=self.site)
-        self.site_enter.grid(row=0, column=3)
+        self.site = "Temp Site"
+        Label(frame, text = self.site).grid(row=0, column=3)
 
         Label(frame, text="Start Date: ").grid(row=1, column=0)
-        self.start_date_detail = StringVar()
-        self.start_date_detail_enter = Entry(frame, textvariable=self.start_date_detail)
-        self.start_date_detail_enter.grid(row=1, column=1)
+        self.startDate = "Temp Start Date"
+        Label(frame, text = self.startDate).grid(row=1, column=1)
 
         Label(frame, text="End Date: ").grid(row=1, column=2)
-        self.end_date_detail = StringVar()
-        self.end_date_detail_enter = Entry(frame, textvariable=self.end_date_detail)
-        self.end_date_detail_enter.grid(row=1, column=3)
+        self.endDate = "Temp End Date"
+        Label(frame, text = self.endDate).grid(row=1, column=3)
 
 
         Label(frame, text="Ticket Price ($): ").grid(row=2, column=0)
-        self.ticket_price = StringVar()
-        self.ticket_price_enter = Entry(frame, textvariable=self.ticket_price)
-        self.ticket_price_enter.grid(row=2, column=1)
+        self.ticketPrice = "Temp Price"
+        Label(frame, text = self.ticketPrice).grid(row=2, column=1)
 
         Label(frame, text="Tickets Remaining: ").grid(row=2, column=2)
-        self.tickets_remaining = StringVar()
-        self.tickets_remaining_enter = Entry(frame, textvariable=self.tickets_remaining)
-        self.tickets_remaining_enter.grid(row=2, column=3)
+        self.ticketsRemaining = "Temp Remaining"
+        Label(frame, text = self.ticketsRemaining).grid(row=2, column=3)
 
 
         Label(frame, text="Description:  ").grid(row=3, column=0)
@@ -2129,9 +2113,8 @@ class App:
         frame.grid()
 
         Label(frame, text="Site ").grid(row=0, column=0)
-        self.site = StringVar()
-        self.site_enter = Entry(frame, textvariable=self.site)
-        self.site_enter.grid(row=0, column=1)
+        self.siteName = "Temp Site"
+        Label(frame, text = self.siteName).grid(row=0, column=1)
 
         Label(frame, text="Transport Type: ").grid(row=0, column=2)
         self.trans_type = StringVar()
