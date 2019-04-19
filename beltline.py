@@ -1792,9 +1792,16 @@ class App:
         frame = Frame(self.take_tran)
         frame.grid()
 
+        query = "Select Distinct SiteName from Site"
+        self.cursor.execute(query)
+        sites = self.cursor.fetchall()
+
         Label(frame, text="Contain Site ").grid(row=0, column=0)
         self.destination = StringVar()
-        choices = ["Manager", "Staff", "All"]
+        choices = []
+        for site in sites:
+            choices.append(site[0])
+        choices.append('All')
         self.destination.set("All")
         self.popupMenu = OptionMenu(frame, self.destination, *choices)
         self.popupMenu.grid(row=0, column=1)
@@ -1821,16 +1828,16 @@ class App:
         frame_tree = Frame(self.take_tran)
         frame_tree.grid()
 
-        tree = ttk.Treeview(frame_tree, columns=['Route', 'Transport Type', 'Price', '# Connected Sites'],
-                            show='headings')
+        self.tree = ttk.Treeview(frame_tree, columns=['Route', 'Transport Type', 'Price', '# Connected Sites'],
+                            show='headings', selectmode='browse')
 
-        tree.heading('Route', text='Route')
-        tree.heading('Transport Type', text='Transport Type')
-        tree.heading('Price', text='Price')
-        tree.heading("# Connected Sites", text='# Connected Sites')
-        tree.insert("", "end", values=("1", "2", "3", "4"))
-        tree.insert("", "end", values=("4", "5", "6", "7"))
-        tree.grid(row=1, column=3)
+        self.tree.heading('Route', text='Route')
+        self.tree.heading('Transport Type', text='Transport Type')
+        self.tree.heading('Price', text='Price')
+        self.tree.heading("# Connected Sites", text='# Connected Sites')
+        #self.tree.bind('<Button-1>', self.onSingleClick)
+        #self.tree.bind("<Double-1>", self.OnDoubleClick)
+        self.tree.grid(row=1, column=3)
 
         frame_under = Frame(self.take_tran)
         frame_under.grid()
@@ -1845,8 +1852,46 @@ class App:
         self.log = Button(frame_under, text="Log Transit", command=self.log_transit).grid(row=0, column=4)
 
     ###########################################################################
-    def filter_take_trans(self):
+    def OnDoubleClick(self):
         pass
+
+    def onSingleClick(self):
+        pass
+
+    def filter_take_trans(self):
+        for i in self.tree.get_children():
+            self.tree.delete(i)
+        if self.destination.get() == 'All' and self.trans_type.get() and self.price_lower.get() == 0 and self.price_upper.get() == 0:
+            query = "Select Transit_route, Transit_type, Price from Transit"
+            self.cursor.execute(query)
+            transits = self.cursor.fetchall()
+            for transit in transits:
+                route = transit[0]
+                type = transit[1]
+                price = transit[2]
+                queryb = "Select count(sitename) from connects where transitroute = '%s'" % (route)
+                self.cursor.execute(queryb)
+                connected = self.cursor.fetchone()
+                self.tree.insert("", "end", values=(route, type, price, connected))
+        else:
+            query = "select distinct Transit_route, Transit_type, Price from transit join connects on transit.transit_route = connects.TransitRoute where "
+            if self.destination.get() != "All":
+                query = query + "SiteName = '" + self.destination.get() + "'"
+            if self.trans_type.get() != "All":
+                query = query + " And TransitType = '" + self.trans_type.get() + "'"
+            if self.price_upper.get() != 0 and self.price_lower.get() <= self.price_upper.get():
+                query = query + " And Price between '" + str(self.price_lower.get()) + "'"
+                query = query + " and '" + str(self.price_upper.get()) + "'"
+            self.cursor.execute(query)
+            results = self.cursor.fetchall()
+            for transit in results:
+                route = transit[0]
+                type = transit[1]
+                price = transit[2]
+                queryb = "Select count(sitename) from connects where transitroute = '%s'" % (route)
+                self.cursor.execute(queryb)
+                connected = self.cursor.fetchone()
+                self.tree.insert("", "end", values=(route, type, price, connected))
 
     ###########################################################################
     def back_take_trans(self):
@@ -1854,7 +1899,17 @@ class App:
 
     ###########################################################################
     def log_transit(self):
-        pass
+        if self.date.get() == "":
+            messagebox.showwarning("Date", "Please enter the date to log the transit")
+        elif len(self.tree.selection()) == 0:
+            messagebox.showwarning("Select Transit", "Please select a transit to log")
+        else:
+            select = self.tree.item(self.tree.selection())
+            query = "Insert into Takes values('%s', '%s', '%s', '%s')" % (self.user.get(), select["values"][1], select["values"][0], self.date.get())
+            self.cursor.execute(query)
+            self.db.commit()
+            messagebox.showinfo("Success!!", "Your Transit has been logged")
+
 
     def on_backbutton_clicked(self):
         self.frame()
