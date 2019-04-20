@@ -1378,7 +1378,14 @@ class App:
         self.end_date_enter = Entry(frame, textvariable=self.end_date)
         self.end_date_enter.grid(row=1, column=5)
 
-        self.filter = Button(frame, text="Filter", command=self.filter_transit_history).grid(row=2, column=0)
+        Label(frame, text="Sort By: ").grid(row=2, column=0)
+        self.sort = StringVar()
+        choices = ['Date', 'Route', 'Transport Type', 'Price','Date Desc', 'Route Desc', 'Transport Type Desc', 'Price Desc', 'None']
+        self.sort.set('None')
+        self.popup = OptionMenu(frame, self.sort, *choices)
+        self.popup.grid(row=2, column = 1)
+
+        self.filter = Button(frame, text="Filter", command=self.filter_transit_history).grid(row=2, column=2)
 
         frame_tree = Frame(self.view_tran)
         frame_tree.grid()
@@ -1401,7 +1408,25 @@ class App:
         for i in self.tree.get_children():
             self.tree.delete(i)
         if self.destination.get() == 'All' and self.trans_type.get() == 'All' and self.route.get() == "" and self.start_date.get() == "" and self.end_date.get() == "":
-            query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s'" % self.user.get()
+            query = ""
+            if self.sort.get() == "Date":
+                query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s' order by DateTaken" % self.user.get()
+            elif self.sort.get() == "Route":
+                query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s' order by Transit_route" % self.user.get()
+            elif self.sort.get() == "Transport Type":
+                query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s' order by Transit_type" % self.user.get()
+            elif self.sort.get() == "Price":
+                query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s' order by price" % self.user.get()
+            elif self.sort.get() == "Date Desc":
+                query = query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s' order by DateTaken desc" % self.user.get()
+            elif self.sort.get() == "Route Desc":
+                query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s' order by Transit_route desc" % self.user.get()
+            elif self.sort.get() == "Transport Type Desc":
+                query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s' order by Transit_type desc" % self.user.get()
+            elif self.sort.get() == "Price Desc":
+                query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s' order by price desc" % self.user.get()
+            else:
+                query = query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s'" % self.user.get()
             self.cursor.execute(query)
             transits = self.cursor.fetchall()
             for transit in transits:
@@ -1462,7 +1487,25 @@ class App:
                         query = query + " and " + date
                 else:
                     query = query + "and " + date
-                print(query)
+                query = ""
+                if self.sort.get() == "Date":
+                    query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s' order by DateTaken" % self.user.get()
+                elif self.sort.get() == "Route":
+                    query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s' order by Transit_route" % self.user.get()
+                elif self.sort.get() == "Transport Type":
+                    query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s' order by Transit_type" % self.user.get()
+                elif self.sort.get() == "Price":
+                    query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s' order by price" % self.user.get()
+                elif self.sort.get() == "Date Desc":
+                    query = query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s' order by DateTaken desc" % self.user.get()
+                elif self.sort.get() == "Route Desc":
+                    query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s' order by Transit_route desc" % self.user.get()
+                elif self.sort.get() == "Transport Type Desc":
+                    query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s' order by Transit_type desc" % self.user.get()
+                elif self.sort.get() == "Price Desc":
+                    query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s' order by price desc" % self.user.get()
+                else:
+                    query = query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s'" % self.user.get()
                 self.cursor.execute(query)
                 results = self.cursor.fetchall()
                 for transit in results:
@@ -1659,10 +1702,17 @@ class App:
         self.popup = OptionMenu(frame, self.status, *choices_type)
         self.popup.grid(row=0, column=5)
 
-        self.filter = Button(frame, text="Filter", command=self.filter_manage_user).grid(row=1, column=0)
+        Label(frame, text="Sort By: ").grid(row=1, column=0)
+        self.sort = StringVar()
+        choices = ['Username', 'Status', 'Username Desc', 'Status Desc', 'None']
+        self.sort.set('None')
+        self.popup = OptionMenu(frame, self.sort, *choices)
+        self.popup.grid(row=1, column = 1)
 
-        self.approve = Button(frame, text="Approve", command=self.approve_user).grid(row=1, column=1)
-        self.decline = Button(frame, text='Decline', command=self.decline_user).grid(row=1, column=2)
+        self.filter = Button(frame, text="Filter", command=self.filter_manage_user).grid(row=2, column=0)
+
+        self.approve = Button(frame, text="Approve", command=self.approve_user).grid(row=2, column=1)
+        self.decline = Button(frame, text='Decline', command=self.decline_user).grid(row=2, column=2)
 
         frame_tree = Frame(self.manageUserGui)
         frame_tree.grid()
@@ -1719,7 +1769,17 @@ class App:
         for i in self.tree.get_children():
             self.tree.delete(i)
         if self.username.get() == '' and self.type.get() == 'All' and self.status.get() == 'All':
-            query = "Select username, user_status from normaluser where username != '%s'" % (self.user.get())
+            query = ""
+            if self.sort.get() == "Username":
+                query = "Select username, user_status from normaluser where username != '%s' order by username" % (self.user.get())
+            elif self.sort.get() == "Status":
+                query = "Select username, user_status from normaluser where username != '%s' order by user_status" % (self.user.get())
+            elif self.sort.get() == "Username Desc":
+                query = "Select username, user_status from normaluser where username != '%s' order by username desc" % (self.user.get())
+            elif self.sort.get() == "Status Desc":
+                query = "Select username, user_status from normaluser where username != '%s' order by user_status desc" % (self.user.get())
+            else:
+                query = "Select username, user_status from normaluser where username != '%s'" % (self.user.get())
             self.cursor.execute(query)
             people = self.cursor.fetchall()
             for p in people:
@@ -1745,6 +1805,16 @@ class App:
                         query = query + " and " + status
                 else:
                     query = query + status
+                if self.sort.get() == "Username":
+                    query = query + " order by username"
+                elif self.sort.get() == "Status":
+                    query = query + " order by user_status"
+                elif self.sort.get() == "Username Desc":
+                    query = query + " order by username desc"
+                elif self.sort.get() == "Status Desc":
+                    query = query + " order by user_status desc"
+                else:
+                    query = query
                 self.cursor.execute(query)
                 result = self.cursor.fetchall()
                 for entry in result:
@@ -1769,6 +1839,16 @@ class App:
                         query = query + " and " + status
                 else:
                     query = query + status
+                if self.sort.get() == "Username":
+                    query = query + " order by visitor.username"
+                elif self.sort.get() == "Status":
+                    query = query + " order by user_status"
+                elif self.sort.get() == "Username Desc":
+                    query = query + " order by visitor.username desc"
+                elif self.sort.get() == "Status Desc":
+                    query = query + " order by user_status desc"
+                else:
+                    query = query
                 self.cursor.execute(query)
                 result = self.cursor.fetchall()
                 for entry in result:
@@ -1802,6 +1882,16 @@ class App:
                         query = query + " and " + type
                 else:
                     query = query + type
+                if self.sort.get() == "Username":
+                    query = query + " order by employee.username"
+                elif self.sort.get() == "Status":
+                    query = query + " order by user_status"
+                elif self.sort.get() == "Username Desc":
+                    query = query + " order by employee.username desc"
+                elif self.sort.get() == "Status Desc":
+                    query = query + " order by user_status desc"
+                else:
+                    query = query
                 self.cursor.execute(query)
                 result = self.cursor.fetchall()
                 for entry in result:
@@ -2039,7 +2129,7 @@ class App:
     def manage_site(self):
         self.currGui.withdraw()
         self.manageSiteGui = Toplevel()
-        self.currGui = self.manage_site
+        self.currGui = self.manageSiteGui
         self.manageSiteGui.title("Manage Site")
 
         Label(self.manageSiteGui, text="Manage Site").grid(row=0)
@@ -2082,6 +2172,13 @@ class App:
         self.popup = OptionMenu(frame, self.open, *choices_type)
         self.popup.grid(row=1, column=3)
 
+        Label(frame, text="Sort By: ").grid(row=1, column=4)
+        self.sort = StringVar()
+        choices = ['Name', 'Manager', 'Open Everyday', 'Name Desc','Manager Desc', 'Open Everyday Desc', 'None']
+        self.sort.set('None')
+        self.popup = OptionMenu(frame, self.sort, *choices)
+        self.popup.grid(row=1, column = 5)
+
         self.filter = Button(frame, text="Filter", command=self.filter_manage_site).grid(row=2, column=0)
 
         self.create = Button(frame, text="Create", command=self.create_site).grid(row=2, column=1)
@@ -2111,6 +2208,20 @@ class App:
             self.tree.delete(i)
         if self.site.get() == 'All' and self.managers.get() == 'All' and self.open.get() == 'All':
             query = "SELECT sitename, concat(firstname,' ', lastname), openeveryday FROM Site a join normaluser b on a.managerID=b.username"
+            if self.sort.get() == "Name":
+                query = "SELECT sitename, concat(firstname,' ', lastname), openeveryday FROM Site a join normaluser b on a.managerID=b.username order by sitename"
+            elif self.sort.get() == "Manager":
+                query = "SELECT sitename, concat(firstname,' ', lastname), openeveryday FROM Site a join normaluser b on a.managerID=b.username order by concat(firstname,' ', lastname)"
+            elif self.sort.get() == "Open Everyday":
+                query = "SELECT sitename, concat(firstname,' ', lastname), openeveryday FROM Site a join normaluser b on a.managerID=b.username order by openeveryday"
+            elif self.sort.get() == "Name Desc":
+                query = "SELECT sitename, concat(firstname,' ', lastname), openeveryday FROM Site a join normaluser b on a.managerID=b.username order by sitename desc"
+            elif self.sort.get() == "Manager Desc":
+                query = "SELECT sitename, concat(firstname,' ', lastname), openeveryday FROM Site a join normaluser b on a.managerID=b.username order by concat(firstname,' ', lastname) desc"
+            elif self.sort.get() == "Open Everyday Desc":
+                query = "SELECT sitename, concat(firstname,' ', lastname), openeveryday FROM Site a join normaluser b on a.managerID=b.username order by openeveryday desc"
+            else:
+                query = "SELECT sitename, concat(firstname,' ', lastname), openeveryday FROM Site a join normaluser b on a.managerID=b.username"
             self.cursor.execute(query)
             sites = self.cursor.fetchall()
             for site in sites:
@@ -2142,7 +2253,20 @@ class App:
                     query = query + " and " + open
             else:
                 query = query + open
-            print(query)
+            if self.sort.get() == "Name":
+                query = query + " order by sitename"
+            elif self.sort.get() == "Manager":
+                query = query + " order by concat(firstname,' ', lastname)"
+            elif self.sort.get() == "Open Everyday":
+                query = query + " order by openeveryday"
+            elif self.sort.get() == "Name Desc":
+                query = query + " order by sitename desc"
+            elif self.sort.get() == "Manager Desc":
+                query = query + " order by concat(firstname,' ', lastname) desc"
+            elif self.sort.get() == "Open Everyday Desc":
+                query = query + " order by openeveryday desc"
+            else:
+                query = query
             self.cursor.execute(query)
             results = self.cursor.fetchall()
             for site in results:
@@ -2219,14 +2343,18 @@ class App:
         self.address_enter = Entry(frame, textvariable=self.address)
         self.address_enter.grid(row=1, column=1)
 
+        query = "select concat(FirstName, ' ', Lastname) as 'Manager Name' from NormalUser join manager on manager.username = NormalUser.Username where concat(FirstName, ' ', Lastname) not in(select concat(FirstName, ' ', Lastname) as 'Manager Name' from NormalUser join site on site.managerID = NormalUser.Username)"
+        self.cursor.execute(query)
+        managers_other = self.cursor.fetchall()
+
         Label(frame, text="Manager: ").grid(row=2, column=0)
         self.manager = StringVar()
-        choices_type = ['Approved', 'Declined', 'Pending', 'All']
-        self.manager.set('All')
-        self.popup = OptionMenu(frame, self.manager, *choices_type)
+        choices = []
+        for m in managers_other:
+            choices.append(m[0])
+        self.popup = OptionMenu(frame, self.manager, *choices)
         self.popup.grid(row=2, column=1)
 
-        # Label(frame, text="Open Everyday").grid(row=2, column=3)
         self.open = IntVar()
         Checkbutton(frame, text="Open Everyday", variable=self.open).grid(row=2, column=2)
 
@@ -2239,7 +2367,28 @@ class App:
         self.currGui = self.manageSiteGui
 
     def create_site_btn(self):
-        pass
+        if self.fname.get() == "":
+            messagebox.showwarning("Name?", "Please enter a name for the site")
+        elif self.zip.get() == "":
+            messagebox.showwarning("Zipcode?", "Please enter a zipcode")
+        elif self.manager.get() == "":
+            messagebox.showwarning("Manager", "Please select a manager")
+        else:
+            open = ""
+            if self.open.get() == 1:
+                open = "Yes"
+            else:
+                open = "No"
+            manager_query = "select username from normaluser where concat(firstname, ' ' , lastname)= '%s'" % (self.manager.get())
+            self.cursor.execute(manager_query)
+            managerid = self.cursor.fetchone()
+            query = "Insert into Site set SiteName = '%s', Zipcode = '%s', Address = '%s', ManagerID = '%s', OpenEveryday = '%s'" % (self.fname.get(), self.zip.get(), self.address.get(), managerid[0], open)
+            self.cursor.execute(query)
+            self.db.commit()
+            messagebox.showinfo("Success!", "The site was successfully inserted!")
+            self.currGui.withdraw()
+            self.manage_site()
+
 
     def edit_site(self):
         if len(self.tree.selection()) == 0:
@@ -2265,46 +2414,53 @@ class App:
             self.cursor.execute(query)
             result = self.cursor.fetchone()
 
+            self.name_original = name
+
             Label(frame, text="Name: ").grid(row=0, column=0)
             self.site = StringVar()
+            self.site.set(name)
             self.site_enter = Entry(frame, textvariable=self.site)
             self.site_enter.grid(row=0, column=1)
-            self.site.set(name)
 
             Label(frame, text="Zipcode: ").grid(row=0, column=2)
             self.zip = StringVar()
-            self.zip_enter = Entry(frame, textvariable=self.zip)
-            self.zip_enter.grid(row=0, column=3)
             if result[1] != None:
                 self.zip.set(result[1])
+            self.zip_enter = Entry(frame, textvariable=self.zip)
+            self.zip_enter.grid(row=0, column=3)
 
             Label(frame, text="Address: ").grid(row=1, column=0)
             self.address = StringVar()
-            self.address_enter = Entry(frame, textvariable=self.address)
-            self.address_enter.grid(row=1, column=1)
             if result[0] != None:
                 self.address.set(result[0])
+            self.address_enter = Entry(frame, textvariable=self.address)
+            self.address_enter.grid(row=1, column=1)
 
-            query = "select concat(FirstName, ' ', Lastname) as 'Manager Name' from NormalUser, Manager where Manager.Username = NormalUser.Username"
+            query = "select concat(Firstname, ' ', LastName) as 'Manager Name' from NormalUser join site on site.managerID = NormalUser.Username where sitename = '%s'" % (name)
             self.cursor.execute(query)
-            managers = self.cursor.fetchall()
+            managers = self.cursor.fetchone()
+            manager_name = managers[0]
+
+            query = "select concat(FirstName, ' ', Lastname) as 'Manager Name' from NormalUser join manager on manager.username = NormalUser.Username where concat(FirstName, ' ', Lastname) not in(select concat(FirstName, ' ', Lastname) as 'Manager Name' from NormalUser join site on site.managerID = NormalUser.Username)"
+            self.cursor.execute(query)
+            managers_other = self.cursor.fetchall()
 
             Label(frame, text="Manager: ").grid(row=2, column=0)
             self.manager = StringVar()
             choices = []
-            for m in managers:
+            choices.append(manager_name)
+            for m in managers_other:
                 choices.append(m[0])
-            choices.append('All')
-            self.manager.set(manager)
+            self.manager.set(manager_name)
             self.popup = OptionMenu(frame, self.manager, *choices)
             self.popup.grid(row=2, column=1)
 
             self.open = IntVar()
-            Checkbutton(frame, text="Open Everyday", variable=self.open).grid(row=2, column=2)
             if open == "Yes":
                 self.open.set(1)
             else:
                 self.open.set(0)
+            Checkbutton(frame, text="Open Everyday", variable=self.open).grid(row=2, column=2)
 
             self.registerUser = Button(frame, text="Back", command=self.edit_site_back).grid(row=4, column=1)
             self.registerUser = Button(frame, text="Update", command=self.edit_site_btn).grid(row=4, column=2)
@@ -2320,19 +2476,23 @@ class App:
             open = "Yes"
         else:
             open = "No"
+
+        print(self.site.get())
         query_manager_id = "select username from normaluser where concat(firstname, ' ' , lastname)= '%s'" % (self.manager.get())
         self.cursor.execute(query_manager_id)
         id = self.cursor.fetchone()
-        query = "Update Site set SiteName = '%s', Zipcode = '%s', Address = '%s', ManagerID = '%s', OpenEveryday = '%s' where SiteName = '%s'" % (self.site.get(), self.zip.get(), self.address.get(), id[0], open, self.site.get())
+        query = "Update Site set SiteName = '%s', Zipcode = '%s', Address = '%s', ManagerID = '%s', OpenEveryday = '%s' where SiteName = '%s'" % (self.site.get(), self.zip.get(), self.address.get(), id[0], open, self.name_original)
         self.cursor.execute(query)
         self.db.commit()
         messagebox.showinfo("Success!!", "The site has been edited")
+        self.currGui.withdraw()
+        self.manage_site()
 
     ###########################################################################
     def take_transit(self):
         self.currGui.withdraw()
         self.take_tran = Toplevel()
-        self.currGui = self.take_transit
+        self.currGui = self.take_tran
         self.take_tran.title("Take Transit")
 
         Label(self.take_tran, text="Take Transit").grid(row=0)
