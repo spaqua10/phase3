@@ -56,7 +56,7 @@ class App:
 
         self.cursor = self.db.cursor()
 
-        print(self.userType)
+        #print(self.userType)
 
     ###########################################################################
     # this function connects to the db
@@ -1326,7 +1326,7 @@ class App:
         for i in self.tree.get_children():
             self.tree.delete(i)
         if self.destination.get() == 'All' and self.trans_type.get() == 'All' and self.route.get() == "" and self.start_date.get() == "" and self.end_date.get() == "":
-            query = "Select DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s'" % self.user.get()
+            query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s'" % self.user.get()
             self.cursor.execute(query)
             transits = self.cursor.fetchall()
             for transit in transits:
@@ -1336,7 +1336,7 @@ class App:
                 price = transit[3]
                 self.tree.insert("", "end", values=(date, route, type, price))
         else:
-            query = "select DateTaken, a.Transit_route, a.Transit_Type, price from transit a join takes b join connects c on b.transit_route = a.Transit_Route and b.transit_route = c.TransitRoute where b.username = '%s' " % (self.user.get())
+            query = "select Distinct DateTaken, a.Transit_route, a.Transit_Type, price from transit a join takes b join connects c on b.transit_route = a.Transit_Route and b.transit_route = c.TransitRoute where b.username = '%s' " % (self.user.get())
             site = ""
             trans = ""
             route = ""
@@ -1414,39 +1414,64 @@ class App:
         frame = Frame(self.manageProGui)
         frame.grid()
 
+        query = "select firstname, lastname, phone from normaluser a join employee b on a.username = b.username where a.username = '%s'" % (self.user.get())
+        self.cursor.execute(query)
+        result = self.cursor.fetchone()
+
         Label(frame, text="First Name: ").grid(row=0, column=0)
         self.fname = StringVar()
         self.fname_enter = Entry(frame, textvariable=self.fname)
         self.fname_enter.grid(row=0, column=1)
+        self.fname.set(result[0])
 
         Label(frame, text="Last Name: ").grid(row=0, column=2)
         self.lname = StringVar()
         self.lname_enter = Entry(frame, textvariable=self.lname)
         self.lname_enter.grid(row=0, column=3)
+        self.lname.set(result[1])
 
         Label(frame, text="Username: ").grid(row=1, column=0)
-        Label(frame, text='user').grid(row=1, column=1)
+        Label(frame, text=self.user.get()).grid(row=1, column=1)
+
+        query = "Select sitename from site where managerID = '%s'" % (self.user.get())
+        self.cursor.execute(query)
+        result1 = self.cursor.fetchone()
 
         Label(frame, text="Site Name: ").grid(row=1, column=2)
-        Label(frame, text="Site").grid(row=1, column=3)
+        text = ""
+        if result1 != None:
+            test = result1[0]
+        Label(frame, text=text).grid(row=1, column=3)
+
+        query = "Select employee_ID, concat(employee_address,', ', employee_city,', ', employee_state, ' ', employee_zipcode) as Address from employee where username = '%s'" % (self.user.get())
+        self.cursor.execute(query)
+        result2 = self.cursor.fetchone()
 
         Label(frame, text="Employee ID: ").grid(row=2, column=0)
-        Label(frame, text="123456789").grid(row=2, column=1)
+        Label(frame, text=result2[0]).grid(row=2, column=1)
 
         Label(frame, text="Phone ").grid(row=2, column=2)
         self.phone = IntVar()
         self.phone_enter = Entry(frame, textvariable=self.phone)
         self.phone_enter.grid(row=2, column=3)
+        self.phone.set(result[2])
 
         Label(frame, text="Address: ").grid(row=3, column=0)
-        #TODO Rewrite This with Query To Get Address
-        self.address = "Temp Address"
-        Label(frame, text = self.address).grid(row=3, column=1)
+        Label(frame, text = result2[1]).grid(row=3, column=1)
+
+        query = "Select email from email where username = '%s'" % (self.user.get())
+        self.cursor.execute(query)
+        result3 = self.cursor.fetchall()
+        email_c = ""
+        for email in result3:
+            email_c = email_c + " " + email[0] + ","
+        self.prev_email = email_c
 
         Label(frame, text="Email: ").grid(row=4, column=0)
         self.email = StringVar()
         self.email_enter = Entry(frame, textvariable=self.email)
         self.email_enter.grid(row=4, column=1)
+        self.email.set(email_c)
 
         query = "Select * from Visitor where Username = '%s'" % (self.user.get())
         vis = self.cursor.execute(query)
@@ -1459,7 +1484,20 @@ class App:
         self.registerUser = Button(frame, text="Back", command=self.back_manage_profile).grid(row=6, column=1)
 
     def update_profile(self):
-        pass
+        query = "Update NormalUser set Firstname = '%s', LastName = '%s' where Username = '%s'" % (self.fname.get(), self.lname.get(), self.user.get())
+        queryb = "Update Employee set Phone = '%s' where Username = '%s'" % (self.phone.get(), self.user.get())
+        self.cursor.execute(query)
+        self.cursor.execute(queryb)
+        email_split = [x.strip() for x in self.email.get().split(',')]
+        for email in email_split:
+            if email != "" and email not in self.prev_email:
+                querye = "Insert into Email values('%s', '%s')" % (self.user.get(), email)
+                self.cursor.execute(querye)
+        if self.visitor.get() == 0:
+            queryd = "delete from visitor where username = '%s'" % (self.user.get())
+            self.cursor.execute(queryd)
+        self.db.commit()
+        messagebox.showinfo("Success!!", "Your profile has been successfully updated!")
 
     def back_manage_profile(self):
         pass
@@ -1519,13 +1557,134 @@ class App:
         self.back = Button(frame_under, text="Back", command=self.back_manage_user).grid(row=0, column=0)
 
     def approve_user(self):
-        pass
+        if len(self.tree.selection()) == 0:
+            messagebox.showwarning("Select User", "Please select a user to approve")
+        else:
+            select = self.tree.item(self.tree.selection())
+            query = "Update NormalUser set User_Status = 'Approved' where Username = '%s'" % (select['values'][0])
+            self.cursor.execute(query)
+            self.db.commit()
+            messagebox.showinfo("Success!!", "The User has been approved!")
+            user = select["values"][0]
+            count = select["values"][1]
+            type = select["values"][2]
+            self.tree.insert("", "end", values=(user, count, type, "Approved"))
+            self.tree.delete(self.tree.selection()[0])
 
     def decline_user(self):
-        pass
+        if len(self.tree.selection()) == 0:
+            messagebox.showwarning("Select User", "Please select a user to decline")
+        elif self.tree.item(self.tree.selection())['values'][3] == "Approved":
+            messagebox.showwarning("Select User", "You cannot decline an approved user. Please select a pending account to decline")
+        else:
+            select = self.tree.item(self.tree.selection())
+            query = "Update NormalUser set User_Status = 'Declined' where Username = '%s'" % (self.username.get())
+            self.cursor.execute(query)
+            self.db.commit()
+            messagebox.showinfo("Success!!", "The User has been declined!")
+            user = select["values"][0]
+            count = select["values"][1]
+            type = select["values"][2]
+            self.tree.insert("", "end", values=(user, count, type, "Approved"))
+            self.tree.delete(self.tree.selection()[0])
 
     def filter_manage_user(self):
-        pass
+        for i in self.tree.get_children():
+            self.tree.delete(i)
+        if self.username.get() == '' and self.type.get() == 'All' and self.status.get() == 'All':
+            query = "Select username, user_status from normaluser where username != '%s'" % (self.user.get())
+            self.cursor.execute(query)
+            people = self.cursor.fetchall()
+            for p in people:
+                user = p[0]
+                status = p[1]
+                queryb = "Select count(*) from Email where Username = '%s'" % (user)
+                self.cursor.execute(queryb)
+                emails = self.cursor.fetchone()
+                self.tree.insert("", "end", values=(user, emails, "User", status))
+        else:
+            query = ""
+            if self.type.get() == "User" or self.type.get() == 'All':
+                query = "Select username, user_status from normaluser where " #username = usernamevar from the box AND user_status = userstatusvar"
+                user = ""
+                status = ""
+                if self.username.get() != "":
+                    user = "username = '" + self.username.get() + "'"
+                if self.status.get() != 'All':
+                    status = "user_status = '" + self.status.get() + "'"
+                if user != "":
+                    query = query + user
+                    if status != "":
+                        query = query + " and " + status
+                else:
+                    query = query + status
+                self.cursor.execute(query)
+                result = self.cursor.fetchall()
+                for entry in result:
+                    username = entry[0]
+                    status = entry[1]
+                    type = "User"
+                    querye = "Select count(*) from Email where Username = '%s'" % (username)
+                    self.cursor.execute(querye)
+                    count = self.cursor.fetchone()
+                    self.tree.insert("", "end", values=(username, count, type, status))
+            elif self.type.get() == "Visitor":
+                query = "SELECT visitor.username,user_status from visitor join normaluser on visitor.username= normaluser.username where "
+                user = ""
+                status = ""
+                if self.username.get() != "":
+                    user = "username = '" + self.username.get() + "'"
+                if self.status.get() != 'All':
+                    status = "user_status = '" + self.status.get() + "'"
+                if user != "":
+                    query = query + user
+                    if status != "":
+                        query = query + " and " + status
+                else:
+                    query = query + status
+                self.cursor.execute(query)
+                result = self.cursor.fetchall()
+                for entry in result:
+                    username = entry[0]
+                    status = entry[1]
+                    type = "Visitor"
+                    querye = "Select count(*) from Email where Username = '%s'" % (username)
+                    self.cursor.execute(querye)
+                    count = self.cursor.fetchone()
+                    self.tree.insert("", "end", values=(username, count, type, status))
+            else:
+                query = "SELECT employee.username,user_status from employee join normaluser on employee.username= normaluser.username where "
+                user = ""
+                status = ""
+                type = ""
+                if self.username.get() != "":
+                    user = "employee.username = '" + self.username.get() + "'"
+                if self.status.get() != 'All':
+                    status = "user_status = '" + self.status.get() + "'"
+                if self.type.get() != 'All':
+                    type = "Employee_Type = '" + self.type.get() + "'"
+                if user != "":
+                    query = query + user
+                    if status != "":
+                        query = query + " and " + status
+                    if type != "":
+                        query = query + " and " + type
+                elif status != "":
+                    query = query + status
+                    if type != "":
+                        query = query + " and " + type
+                else:
+                    query = query + type
+                self.cursor.execute(query)
+                result = self.cursor.fetchall()
+                for entry in result:
+                    username = entry[0]
+                    status = entry[1]
+                    type = self.type.get()
+                    querye = "Select count(*) from Email where Username = '%s'" % (username)
+                    self.cursor.execute(querye)
+                    count = self.cursor.fetchone()
+                    self.tree.insert("", "end", values=(username, count, type, status))
 
     def back_manage_user(self):
         pass
@@ -1709,25 +1868,39 @@ class App:
         frame = Frame(self.manageSiteGui)
         frame.grid()
 
+        query = "Select Distinct SiteName from Site"
+        self.cursor.execute(query)
+        sites = self.cursor.fetchall()
+
         Label(frame, text="Site ").grid(row=0, column=0)
-        self.type = StringVar()
-        choices = ["Manager", "Staff", "All"]
-        self.type.set("All")
-        self.popupMenu = OptionMenu(frame, self.type, *choices)
+        self.site = StringVar()
+        choices = []
+        for site in sites:
+            choices.append(site[0])
+        choices.append('All')
+        self.site.set("All")
+        self.popupMenu = OptionMenu(frame, self.site, *choices)
         self.popupMenu.grid(row=0, column=1)
 
+        query = "select concat(firstname,' ', lastname) from manager a  join normaluser b on a.username=b.username"
+        self.cursor.execute(query)
+        managers = self.cursor.fetchall()
+
         Label(frame, text="Manager ").grid(row=0, column=2)
-        self.status = StringVar()
-        choices_type = ['Approved', 'Declined', 'Pending', 'All']
-        self.status.set('All')
-        self.popup = OptionMenu(frame, self.status, *choices_type)
+        self.managers = StringVar()
+        choices = []
+        for manager in managers:
+            choices.append(manager[0])
+        choices.append('All')
+        self.managers.set('All')
+        self.popup = OptionMenu(frame, self.managers, *choices)
         self.popup.grid(row=0, column=3)
 
         Label(frame, text="Open Everyday ").grid(row=1, column=2)
-        self.status = StringVar()
-        choices_type = ['Yes', 'No']
-        self.status.set('Yes')
-        self.popup = OptionMenu(frame, self.status, *choices_type)
+        self.open = StringVar()
+        choices_type = ['Yes', 'No', 'All']
+        self.open.set('All')
+        self.popup = OptionMenu(frame, self.open, *choices_type)
         self.popup.grid(row=1, column=3)
 
         self.filter = Button(frame, text="Filter", command=self.filter_manage_site).grid(row=2, column=0)
@@ -1755,10 +1928,60 @@ class App:
         self.back = Button(frame_under, text="Back", command=self.back_manage_site).grid(row=0, column=0)
 
     def filter_manage_site(self):
-        pass
+        for i in self.tree.get_children():
+            self.tree.delete(i)
+        if self.site.get() == 'All' and self.managers.get() == 'All' and self.open.get() == 'All':
+            query = "SELECT sitename, concat(firstname,' ', lastname), openeveryday FROM Site a join normaluser b on a.managerID=b.username"
+            self.cursor.execute(query)
+            sites = self.cursor.fetchall()
+            for site in sites:
+                name = site[0]
+                manager = site[1]
+                open = site[2]
+                self.tree.insert("", "end", values=(name, manager, open))
+        else:
+            query = "SELECT sitename, concat(firstname,' ', lastname), openeveryday FROM Site a join normaluser b on a.managerID=b.username where "
+            site = ""
+            manager = ""
+            open = ""
+            if self.site.get() != "All":
+                site = "SiteName = '" + self.site.get() + "'"
+            if self.managers.get() != "All":
+                manager = "concat(b.Firstname, ' ', b.LastName) = '" + self.managers.get() + "'"
+                print(manager)
+            if self.open.get() != 'All':
+                open = "openeveryday = '" + self.open.get() + "'"
+            if site != "":
+                query = query + site
+                if manager != "":
+                    query = query + " and " + manager
+                if open != "":
+                    query = query + " and " + open
+            elif manager != "":
+                query = query + manager
+                if open != "":
+                    query = query + " and " + open
+            else:
+                query = query + open
+            print(query)
+            self.cursor.execute(query)
+            results = self.cursor.fetchall()
+            for site in results:
+                name = site[0]
+                manager = site[1]
+                open = site[2]
+                self.tree.insert("", "end", values=(name, manager, open))
 
     def delete_site(self):
-        pass
+        if len(self.tree.selection()) == 0:
+            messagebox.showwarning("Select Site", "Please select a site to delete")
+        else:
+            select = self.tree.item(self.tree.selection())
+            query = "Delete from Site where SiteName = '%s'" % (select["values"][0])
+            self.cursor.execute(query)
+            self.db.commit()
+            self.tree.delete(self.tree.selection()[0])
+            messagebox.showinfo("Success!!", "The Site have been successfully deleted")
 
     def back_manage_site(self):
         pass
@@ -1814,45 +2037,72 @@ class App:
         pass
 
     def edit_site(self):
-        self.manageSiteGui.withdraw()
-        self.editSite = Toplevel()
-        self.prevGUI = self.currGui
-        self.currGui = self.editSite
-        self.editSite.title("Edit Site")
+        if len(self.tree.selection()) == 0:
+            messagebox.showwarning("Select Site", "Please select a site to edit")
+        else:
+            select = self.tree.item(self.tree.selection())
+            name = select['values'][0]
+            manager = select['values'][1]
+            open = select['values'][2]
 
-        Label(self.editSite, text="Edit Site").grid(row=0)
+            self.manageSiteGui.withdraw()
+            self.editSite = Toplevel()
+            self.prevGUI = self.currGui
+            self.currGui = self.editSite
+            self.editSite.title("Edit Site")
 
-        frame = Frame(self.editSite)
-        frame.grid()
+            Label(self.editSite, text="Edit Site").grid(row=0)
 
-        Label(frame, text="Name: ").grid(row=0, column=0)
-        self.fname = StringVar()
-        self.fname_enter = Entry(frame, textvariable=self.fname)
-        self.fname_enter.grid(row=0, column=1)
+            frame = Frame(self.editSite)
+            frame.grid()
 
-        Label(frame, text="Zipcode: ").grid(row=0, column=2)
-        self.zip = StringVar()
-        self.zip_enter = Entry(frame, textvariable=self.zip)
-        self.zip_enter.grid(row=0, column=3)
+            query = "Select address, zipcode from site where sitename= '%s'" % (name)
+            self.cursor.execute(query)
+            result = self.cursor.fetchone()
 
-        Label(frame, text="Address: ").grid(row=1, column=0)
-        self.address = StringVar()
-        self.address_enter = Entry(frame, textvariable=self.address)
-        self.address_enter.grid(row=1, column=1)
+            Label(frame, text="Name: ").grid(row=0, column=0)
+            self.site = StringVar()
+            self.site_enter = Entry(frame, textvariable=self.site)
+            self.site_enter.grid(row=0, column=1)
+            self.site.set(name)
 
-        Label(frame, text="Manager: ").grid(row=2, column=0)
-        self.manager = StringVar()
-        choices_type = ['Approved', 'Declined', 'Pending', 'All']
-        self.manager.set('All')
-        self.popup = OptionMenu(frame, self.manager, *choices_type)
-        self.popup.grid(row=2, column=1)
+            Label(frame, text="Zipcode: ").grid(row=0, column=2)
+            self.zip = StringVar()
+            self.zip_enter = Entry(frame, textvariable=self.zip)
+            self.zip_enter.grid(row=0, column=3)
+            if result[1] != None:
+                self.zip.set(result[1])
 
-        # Label(frame, text="Open Everyday").grid(row=2, column=3)
-        self.open = IntVar()
-        Checkbutton(frame, text="Open Everyday", variable=self.open).grid(row=2, column=2)
+            Label(frame, text="Address: ").grid(row=1, column=0)
+            self.address = StringVar()
+            self.address_enter = Entry(frame, textvariable=self.address)
+            self.address_enter.grid(row=1, column=1)
+            if result[0] != None:
+                self.address.set(result[0])
 
-        self.registerUser = Button(frame, text="Back", command=self.edit_site_back).grid(row=4, column=1)
-        self.registerUser = Button(frame, text="Update", command=self.edit_site_btn).grid(row=4, column=2)
+            query = "select concat(FirstName, ' ', Lastname) as 'Manager Name' from NormalUser, Manager where Manager.Username = NormalUser.Username"
+            self.cursor.execute(query)
+            managers = self.cursor.fetchall()
+
+            Label(frame, text="Manager: ").grid(row=2, column=0)
+            self.manager = StringVar()
+            choices = []
+            for m in managers:
+                choices.append(m[0])
+            choices.append('All')
+            self.manager.set(manager)
+            self.popup = OptionMenu(frame, self.manager, *choices)
+            self.popup.grid(row=2, column=1)
+
+            self.open = IntVar()
+            Checkbutton(frame, text="Open Everyday", variable=self.open).grid(row=2, column=2)
+            if open == "Yes":
+                self.open.set(1)
+            else:
+                self.open.set(0)
+
+            self.registerUser = Button(frame, text="Back", command=self.edit_site_back).grid(row=4, column=1)
+            self.registerUser = Button(frame, text="Update", command=self.edit_site_btn).grid(row=4, column=2)
 
     def edit_site_back(self):
         self.currGui.withdraw()
@@ -1860,7 +2110,18 @@ class App:
         self.currGui = self.manageSiteGui
 
     def edit_site_btn(self):
-        pass
+        open = ""
+        if self.open.get() == 1:
+            open = "Yes"
+        else:
+            open = "No"
+        query_manager_id = "select username from normaluser where concat(firstname, ' ' , lastname)= '%s'" % (self.manager.get())
+        self.cursor.execute(query_manager_id)
+        id = self.cursor.fetchone()
+        query = "Update Site set SiteName = '%s', Zipcode = '%s', Address = '%s', ManagerID = '%s', OpenEveryday = '%s' where SiteName = '%s'" % (self.site.get(), self.zip.get(), self.address.get(), id[0], open, self.site.get())
+        self.cursor.execute(query)
+        self.db.commit()
+        messagebox.showinfo("Success!!", "The site has been edited")
 
     ###########################################################################
     def take_transit(self):
@@ -1905,7 +2166,14 @@ class App:
         self.price_upper_enter = Entry(frame, textvariable=self.price_upper)
         self.price_upper_enter.grid(row=1, column=3)
 
-        self.filter = Button(frame, text="Filter", command=self.filter_take_trans).grid(row=1, column=5)
+        Label(frame, text="Sort By: ").grid(row=1, column=4)
+        self.sort = StringVar()
+        choices = ['Transport Type', 'Price', '# Connected Sites', 'None']
+        self.sort.set('None')
+        self.popup = OptionMenu(frame, self.sort, *choices)
+        self.popup.grid(row=1, column = 5)
+
+        self.filter = Button(frame, text="Filter", command=self.filter_take_trans).grid(row=1, column=6)
 
         frame_tree = Frame(self.take_tran)
         frame_tree.grid()
