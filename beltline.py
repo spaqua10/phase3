@@ -1,5 +1,6 @@
 from tkinter import *
 from tkinter import ttk, messagebox
+import datetime
 
 
 class App:
@@ -897,18 +898,18 @@ class App:
         frame_tree = Frame(self.site_report)
         frame_tree.grid()
 
-        tree = ttk.Treeview(frame_tree,
+        self.tree = ttk.Treeview(frame_tree,
                             columns=['Date', 'Event Count', 'Staff Count', 'Total Visits', 'Total Revenue ($)'],
-                            show='headings')
+                            show='headings', selectmode='browse')
 
-        tree.heading('Date', text='Date')
-        tree.heading('Event Count', text='Event Count')
-        tree.heading('Staff Count', text='Staff Count')
-        tree.heading('Total Visits', text='Total Visits')
-        tree.heading('Total Revenue ($)', text="Total Revenue ($)")
-        tree.insert("", "end", values=("1", "2", "3", "4", "6"))
-        tree.insert("", "end", values=("4", "5", "6", "7", "8"))
-        tree.grid(row=1, column=3)
+        self.tree.heading('Date', text='Date')
+        self.tree.heading('Event Count', text='Event Count')
+        self.tree.heading('Staff Count', text='Staff Count')
+        self.tree.heading('Total Visits', text='Total Visits')
+        self.tree.heading('Total Revenue ($)', text="Total Revenue ($)")
+        #self.tree.insert("", "end", values=("1", "2", "3", "4", "6"))
+        #self.tree.insert("", "end", values=("4", "5", "6", "7", "8"))
+        self.tree.grid(row=1, column=3)
 
         frame_under = Frame(self.site_report)
         frame_under.grid()
@@ -964,14 +965,14 @@ class App:
         frame_tree = Frame(self.view_staff)
         frame_tree.grid()
 
-        tree = ttk.Treeview(frame_tree, columns=['Staff Name', '# Event Shifts'],
-                            show='headings')
+        self.tree = ttk.Treeview(frame_tree, columns=['Staff Name', '# Event Shifts'],
+                            show='headings', selectmode='browse')
 
-        tree.heading('Staff Name', text='Staff Name')
-        tree.heading('# Event Shifts', text='# Events Shifts')
-        tree.insert("", "end", values=("1", "2"))
-        tree.insert("", "end", values=("4", "5"))
-        tree.grid(row=1, column=3)
+        self.tree.heading('Staff Name', text='Staff Name')
+        self.tree.heading('# Event Shifts', text='# Events Shifts')
+        #self.tree.insert("", "end", values=("1", "2"))
+        #self.tree.insert("", "end", values=("4", "5"))
+        self.tree.grid(row=1, column=3)
 
         frame_under = Frame(self.view_staff)
         frame_under.grid()
@@ -1053,18 +1054,18 @@ class App:
         frame_tree = Frame(self.manage_event)
         frame_tree.grid()
 
-        tree = ttk.Treeview(frame_tree,
+        self.tree = ttk.Treeview(frame_tree,
                             columns=['Name', 'Staff Count', 'Duration (Days)', 'Total Visits', 'Total Revenue'],
-                            show='headings')
+                            show='headings', selectmode='browse')
 
-        tree.heading('Name', text='Name')
-        tree.heading('Staff Count', text='Staff Count')
-        tree.heading('Duration (Days)', text='Duration (Days)')
-        tree.heading('Total Visits', text='Total Visits')
-        tree.heading('Total Revenue', text="Total Revenue")
-        tree.insert("", "end", values=("1", "2", "3", "4", "6"))
-        tree.insert("", "end", values=("4", "5", "6", "7", "8"))
-        tree.grid(row=1, column=3)
+        self.tree.heading('Name', text='Name')
+        self.tree.heading('Staff Count', text='Staff Count')
+        self.tree.heading('Duration (Days)', text='Duration (Days)')
+        self.tree.heading('Total Visits', text='Total Visits')
+        self.tree.heading('Total Revenue', text="Total Revenue")
+        #self.tree.insert("", "end", values=("1", "2", "3", "4", "6"))
+        #self.tree.insert("", "end", values=("4", "5", "6", "7", "8"))
+        self.tree.grid(row=1, column=3)
 
         frame_under = Frame(self.manage_event)
         frame_under.grid()
@@ -1154,15 +1155,15 @@ class App:
         frame_tree = Frame(self.view_event)
         frame_tree.grid()
 
-        tree = ttk.Treeview(frame_tree, columns=['Date', 'Daily Visits', 'Daily Revenue'],
-                            show='headings')
+        self.tree = ttk.Treeview(frame_tree, columns=['Date', 'Daily Visits', 'Daily Revenue'],
+                            show='headings', selectmode='browse')
 
-        tree.heading('Date', text='Date')
-        tree.heading('Daily Visits', text='Daily Visits')
-        tree.heading('Daily Revenue', text='Daily Revenue')
-        tree.insert("", "end", values=("1", "2", "3"))
-        tree.insert("", "end", values=("4", "5", "6"))
-        tree.grid(row=1, column=3)
+        self.tree.heading('Date', text='Date')
+        self.tree.heading('Daily Visits', text='Daily Visits')
+        self.tree.heading('Daily Revenue', text='Daily Revenue')
+        #self.tree.insert("", "end", values=("1", "2", "3"))
+        #self.tree.insert("", "end", values=("4", "5", "6"))
+        self.tree.grid(row=1, column=3)
 
         frame_under = Frame(self.view_event)
         frame_under.grid()
@@ -1273,9 +1274,16 @@ class App:
         self.popup = OptionMenu(frame, self.trans_type, *choices_type)
         self.popup.grid(row=0, column=1)
 
+        query = "Select Distinct SiteName from Site"
+        self.cursor.execute(query)
+        sites = self.cursor.fetchall()
+
         Label(frame, text="Contain Site ").grid(row=0, column=2)
         self.destination = StringVar()
-        choices = ["Manager", "Staff", "All"]
+        choices = []
+        for site in sites:
+            choices.append(site[0])
+        choices.append('All')
         self.destination.set("All")
         self.popupMenu = OptionMenu(frame, self.destination, *choices)
         self.popupMenu.grid(row=0, column=3)
@@ -1300,16 +1308,14 @@ class App:
         frame_tree = Frame(self.view_tran)
         frame_tree.grid()
 
-        tree = ttk.Treeview(frame_tree, columns=['Date', 'Route', 'Transport Type', 'Price'],
-                            show='headings')
+        self.tree = ttk.Treeview(frame_tree, columns=['Date', 'Route', 'Transport Type', 'Price'],
+                            show='headings', selectmode='browse')
 
-        tree.heading('Date', text='Date')
-        tree.heading('Route', text='Route')
-        tree.heading('Transport Type', text='Transport Type')
-        tree.heading('Price', text='Price')
-        tree.insert("", "end", values=("1", "2", "3", "4"))
-        tree.insert("", "end", values=("4", "5", "6", "7"))
-        tree.grid(row=1, column=3)
+        self.tree.heading('Date', text='Date')
+        self.tree.heading('Route', text='Route')
+        self.tree.heading('Transport Type', text='Transport Type')
+        self.tree.heading('Price', text='Price')
+        self.tree.grid(row=1, column=3)
 
         frame_under = Frame(self.view_tran)
         frame_under.grid()
@@ -1317,7 +1323,79 @@ class App:
         self.back = Button(frame_under, text="Back", command=self.back_transit_history).grid(row=0, column=0)
 
     def filter_transit_history(self):
-        pass
+        for i in self.tree.get_children():
+            self.tree.delete(i)
+        if self.destination.get() == 'All' and self.trans_type.get() == 'All' and self.route.get() == "" and self.start_date.get() == "" and self.end_date.get() == "":
+            query = "Select DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s'" % self.user.get()
+            self.cursor.execute(query)
+            transits = self.cursor.fetchall()
+            for transit in transits:
+                date = transit[0]
+                route = transit[1]
+                type = transit[2]
+                price = transit[3]
+                self.tree.insert("", "end", values=(date, route, type, price))
+        else:
+            query = "select DateTaken, a.Transit_route, a.Transit_Type, price from transit a join takes b join connects c on b.transit_route = a.Transit_Route and b.transit_route = c.TransitRoute where b.username = '%s' " % (self.user.get())
+            site = ""
+            trans = ""
+            route = ""
+            date = ""
+            startd = None
+            endd = None
+            greater = False
+            if self.start_date.get() != "" and self.end_date.get() != "": #and self.start_date.get() <= self.end_date.get():
+                start = [x.strip() for x in self.start_date.get().split('-')]
+                end = [x.strip() for x in self.end_date.get().split('-')]
+                startd = datetime.datetime(int(start[0], 10), int(start[1], 10), int(start[2], 10))
+                endd = datetime.datetime(int(end[0], 10), int(end[1], 10), int(end[2], 10))
+            if startd != None and endd != None:
+                if startd > endd:
+                    greater = True
+            if greater == True:
+                messagebox.showwarning("Date", "The start date must be before the end date")
+            elif self.start_date.get() == "" and self.end_date.get() != "":
+                messagebox.showwarning("Date", "There must be a start and end date. They can be the same date")
+            elif self.start_date.get() != "" and self.end_date.get() == "":
+                messagebox.showwarning("Date", "There must be a start and end date. They can be the same date")
+            else:
+                if self.destination.get() != "All":
+                    site = "c.SiteName = '" + self.destination.get() + "'"
+                if self.trans_type.get() != "All":
+                    trans = "a.Transit_Type = '" + self.trans_type.get() + "'"
+                if self.route.get() != "":
+                    route = "a.Transit_route = '" + self.route.get() + "'"
+                if self.start_date.get() != "" and self.end_date.get() !="" and self.start_date.get() <= self.end_date.get():
+                    date = "DateTaken between '" + self.start_date.get() + "'" + " and '" + self.end_date.get() + "'"
+                if site != "":
+                    query = query + "and " + site
+                    if trans != "":
+                        query = query + " and " + trans
+                    if route != "":
+                        query = query + " and " + route
+                    if date != "":
+                        query = query + " and " + date
+                elif trans != "":
+                    query = query + "and " + trans
+                    if route != "":
+                        query = query + " and " + route
+                    if date != "":
+                        query = query + " and " + date
+                elif route != "":
+                    query = query + "and " + route
+                    if date != "":
+                        query = query + " and " + date
+                else:
+                    query = query + "and " + date
+                print(query)
+                self.cursor.execute(query)
+                results = self.cursor.fetchall()
+                for transit in results:
+                    date = transit[0]
+                    route = transit[1]
+                    type = transit[2]
+                    price = transit[3]
+                    self.tree.insert("", "end", values=(date, route, type, price))
 
     def back_transit_history(self):
         pass
@@ -1370,7 +1448,11 @@ class App:
         self.email_enter = Entry(frame, textvariable=self.email)
         self.email_enter.grid(row=4, column=1)
 
+        query = "Select * from Visitor where Username = '%s'" % (self.user.get())
+        vis = self.cursor.execute(query)
+
         self.visitor = IntVar()
+        self.visitor.set(vis)
         Checkbutton(frame, text="Visitor Account", variable=self.visitor).grid(row=5, column=0)
 
         self.registerUser = Button(frame, text="Update", command=self.update_profile).grid(row=6, column=0)
@@ -1420,16 +1502,16 @@ class App:
         frame_tree = Frame(self.manageUserGui)
         frame_tree.grid()
 
-        tree = ttk.Treeview(frame_tree, columns=['Username', 'Email Count', 'User Type', 'Status'],
-                            show='headings')
+        self.tree = ttk.Treeview(frame_tree, columns=['Username', 'Email Count', 'User Type', 'Status'],
+                            show='headings', selectmode='browse')
 
-        tree.heading('Username', text='Username')
-        tree.heading('Email Count', text='Email Count')
-        tree.heading('User Type', text='User Type')
-        tree.heading("Status", text='Status')
-        tree.insert("", "end", values=("1", "2", "3", "4"))
-        tree.insert("", "end", values=("4", "5", "6", "7"))
-        tree.grid(row=1, column=3)
+        self.tree.heading('Username', text='Username')
+        self.tree.heading('Email Count', text='Email Count')
+        self.tree.heading('User Type', text='User Type')
+        self.tree.heading("Status", text='Status')
+        #self.tree.insert("", "end", values=("1", "2", "3", "4"))
+        #self.tree.insert("", "end", values=("4", "5", "6", "7"))
+        self.tree.grid(row=1, column=3)
 
         frame_under = Frame(self.manageUserGui)
         frame_under.grid()
@@ -1497,18 +1579,18 @@ class App:
         frame_tree = Frame(self.manageTranGui)
         frame_tree.grid()
 
-        tree = ttk.Treeview(frame_tree,
+        self.tree = ttk.Treeview(frame_tree,
                             columns=['Route', 'Transport Type', 'Price', '# Connected Sites', '# Transit Logged'],
-                            show='headings')
+                            show='headings', selectmode = 'browse')
 
-        tree.heading('Route', text='Route')
-        tree.heading('Transport Type', text='Transport Type')
-        tree.heading('Price', text='Price')
-        tree.heading("# Connected Sites", text='# Connected Sites')
-        tree.heading("# Transit Logged", text='# Transit Logged')
-        tree.insert("", "end", values=("1", "2", "3", "4", "5"))
-        tree.insert("", "end", values=("4", "5", "6", "7", "8"))
-        tree.grid(row=1, column=3)
+        self.tree.heading('Route', text='Route')
+        self.tree.heading('Transport Type', text='Transport Type')
+        self.tree.heading('Price', text='Price')
+        self.tree.heading("# Connected Sites", text='# Connected Sites')
+        self.tree.heading("# Transit Logged", text='# Transit Logged')
+        #self.tree.insert("", "end", values=("1", "2", "3", "4", "5"))
+        #self.tree.insert("", "end", values=("4", "5", "6", "7", "8"))
+        self.tree.grid(row=1, column=3)
 
         frame_under = Frame(self.manageTranGui)
         frame_under.grid()
@@ -1657,15 +1739,15 @@ class App:
         frame_tree = Frame(self.manageSiteGui)
         frame_tree.grid()
 
-        tree = ttk.Treeview(frame_tree, columns=['Name', 'Manager', 'Open Everyday'],
-                            show='headings')
+        self.tree = ttk.Treeview(frame_tree, columns=['Name', 'Manager', 'Open Everyday'],
+                            show='headings', selectmode='browse')
 
-        tree.heading('Name', text='Name')
-        tree.heading('Manager', text='Manager')
-        tree.heading('Open Everyday', text='Open Everyday')
-        tree.insert("", "end", values=("1", "2", "3"))
-        tree.insert("", "end", values=("4", "5", "6"))
-        tree.grid(row=1, column=3)
+        self.tree.heading('Name', text='Name')
+        self.tree.heading('Manager', text='Manager')
+        self.tree.heading('Open Everyday', text='Open Everyday')
+        #self.tree.insert("", "end", values=("1", "2", "3"))
+        #self.tree.insert("", "end", values=("4", "5", "6"))
+        self.tree.grid(row=1, column=3)
 
         frame_under = Frame(self.manageSiteGui)
         frame_under.grid()
@@ -1861,7 +1943,7 @@ class App:
     def filter_take_trans(self):
         for i in self.tree.get_children():
             self.tree.delete(i)
-        if self.destination.get() == 'All' and self.trans_type.get() and self.price_lower.get() == 0 and self.price_upper.get() == 0:
+        if self.destination.get() == 'All' and self.trans_type.get() == 'All' and self.price_lower.get() == 0 and self.price_upper.get() == 0:
             query = "Select Transit_route, Transit_type, Price from Transit"
             self.cursor.execute(query)
             transits = self.cursor.fetchall()
@@ -1875,13 +1957,27 @@ class App:
                 self.tree.insert("", "end", values=(route, type, price, connected))
         else:
             query = "select distinct Transit_route, Transit_type, Price from transit join connects on transit.transit_route = connects.TransitRoute where "
+            site = ""
+            tran = ""
+            price = ""
             if self.destination.get() != "All":
-                query = query + "SiteName = '" + self.destination.get() + "'"
+                site = "SiteName = '" + self.destination.get() + "'"
             if self.trans_type.get() != "All":
-                query = query + " And TransitType = '" + self.trans_type.get() + "'"
+                tran = "TransitType = '" + self.trans_type.get() + "'"
             if self.price_upper.get() != 0 and self.price_lower.get() <= self.price_upper.get():
-                query = query + " And Price between '" + str(self.price_lower.get()) + "'"
-                query = query + " and '" + str(self.price_upper.get()) + "'"
+                price = price + "Price between '" + str(self.price_lower.get()) + "' and '" + str(self.price_upper.get()) + "'"
+            if site != "":
+                query = query + site
+                if tran != "":
+                    query = query + " and " + tran
+                if price != "":
+                    query = query + " and " + price
+            elif tran != "":
+                query = query + tran
+                if price != "":
+                    query = query + " and " + price
+            else:
+                query = query + price
             self.cursor.execute(query)
             results = self.cursor.fetchall()
             for transit in results:
@@ -1927,16 +2023,16 @@ class App:
         frame_tree = Frame(self.dailyDetailGUI)
         frame_tree.grid()
 
-        tree = ttk.Treeview(frame_tree, columns=['Event Name', 'Staff Names', 'Visits', 'Revenue ($)'],
-                            show='headings')
+        self.tree = ttk.Treeview(frame_tree, columns=['Event Name', 'Staff Names', 'Visits', 'Revenue ($)'],
+                            show='headings', selectmode='browse')
 
-        tree.heading('Event Name', text='Event Name')
-        tree.heading('Staff Names', text='Staff Names')
-        tree.heading('Visits', text='Visits')
-        tree.heading("Revenue ($)", text='Revenue ($)')
-        tree.insert("", "end", values=("1", "2", "3", "4"))
-        tree.insert("", "end", values=("4", "5", "6", "7"))
-        tree.grid(row=1, column=3)
+        self.tree.heading('Event Name', text='Event Name')
+        self.tree.heading('Staff Names', text='Staff Names')
+        self.tree.heading('Visits', text='Visits')
+        self.tree.heading("Revenue ($)", text='Revenue ($)')
+        #self.tree.insert("", "end", values=("1", "2", "3", "4"))
+        #self.tree.insert("", "end", values=("4", "5", "6", "7"))
+        self.tree.grid(row=1, column=3)
 
         frame_under = Frame(self.dailyDetailGUI)
         frame_under.grid()
@@ -1985,17 +2081,17 @@ class App:
         frame_tree = Frame(self.view_sched_gui)
         frame_tree.grid()
 
-        tree = ttk.Treeview(frame_tree, columns=['Event Name', 'Site Name', 'Start Date', 'End Date', 'Staff Count'],
-                            show='headings')
+        self.tree = ttk.Treeview(frame_tree, columns=['Event Name', 'Site Name', 'Start Date', 'End Date', 'Staff Count'],
+                            show='headings', selectmode='browse')
 
-        tree.heading('Event Name', text='Event Name')
-        tree.heading('Site Name', text='Site Name')
-        tree.heading('Start Date', text='Start Date')
-        tree.heading('End Date', text='End Date')
-        tree.heading('Staff Count', text='Staff Count')
-        tree.insert("", "end", values=("1", "2", "3", "4", "0"))
-        tree.insert("", "end", values=("4", "5", "6", "7", "0"))
-        tree.grid(row=1, column=3)
+        self.tree.heading('Event Name', text='Event Name')
+        self.tree.heading('Site Name', text='Site Name')
+        self.tree.heading('Start Date', text='Start Date')
+        self.tree.heading('End Date', text='End Date')
+        self.tree.heading('Staff Count', text='Staff Count')
+        #self.tree.insert("", "end", values=("1", "2", "3", "4", "0"))
+        #self.tree.insert("", "end", values=("4", "5", "6", "7", "0"))
+        self.tree.grid(row=1, column=3)
 
         frame_under = Frame(self.view_sched_gui)
         frame_under.grid()
@@ -2138,19 +2234,19 @@ class App:
         frame_tree = Frame(self.visit_explore_event)
         frame_tree.grid()
 
-        tree = ttk.Treeview(frame_tree, columns=['Event Name', 'Site Name', 'Ticket Price', 'Tickets Remaining',
+        self.tree = ttk.Treeview(frame_tree, columns=['Event Name', 'Site Name', 'Ticket Price', 'Tickets Remaining',
                                                  'Total Visits', 'My Visits'],
-                            show='headings')
+                            show='headings', selectmode='browse')
 
-        tree.heading('Event Name', text='Event Name')
-        tree.heading('Site Name', text='Site Name')
-        tree.heading('Ticket Price', text='Ticket Price')
-        tree.heading('Tickets Remaining', text='Tickets Remaining')
-        tree.heading('Total Visits', text='Total Visits')
-        tree.heading('My Visits', text='My Visits')
-        tree.insert("", "end", values=("1", "2", "3", "4", "0", "0"))
-        tree.insert("", "end", values=("4", "5", "6", "7", "0", "0"))
-        tree.grid(row=4, column=3)
+        self.tree.heading('Event Name', text='Event Name')
+        self.tree.heading('Site Name', text='Site Name')
+        self.tree.heading('Ticket Price', text='Ticket Price')
+        self.tree.heading('Tickets Remaining', text='Tickets Remaining')
+        self.tree.heading('Total Visits', text='Total Visits')
+        self.tree.heading('My Visits', text='My Visits')
+        #self.tree.insert("", "end", values=("1", "2", "3", "4", "0", "0"))
+        #self.tree.insert("", "end", values=("4", "5", "6", "7", "0", "0"))
+        self.tree.grid(row=4, column=3)
 
         frame_under = Frame(self.visit_explore_event)
         frame_under.grid()
@@ -2290,16 +2386,16 @@ class App:
         frame_tree = Frame(self.explore_site)
         frame_tree.grid()
 
-        tree = ttk.Treeview(frame_tree, columns=['Site Name', 'Event Count', 'Total Visits', 'My Visits'],
-                            show='headings')
+        self.tree = ttk.Treeview(frame_tree, columns=['Site Name', 'Event Count', 'Total Visits', 'My Visits'],
+                            show='headings', selectmode='browse')
 
-        tree.heading('Site Name', text='Site Name')
-        tree.heading('Event Count', text='Event Count')
-        tree.heading('Total Visits', text = 'Total Visits')
-        tree.heading('My Visits', text = 'My Visits')
-        tree.insert("", "end", values=("1", "2", "0", "0"))
-        tree.insert("", "end", values=("4", "5", "0", "0"))
-        tree.grid(row=1, column=3)
+        self.tree.heading('Site Name', text='Site Name')
+        self.tree.heading('Event Count', text='Event Count')
+        self.tree.heading('Total Visits', text = 'Total Visits')
+        self.tree.heading('My Visits', text = 'My Visits')
+        #self.tree.insert("", "end", values=("1", "2", "0", "0"))
+        #self.tree.insert("", "end", values=("4", "5", "0", "0"))
+        self.tree.grid(row=1, column=3)
 
         frame_under = Frame(self.explore_site)
         frame_under.grid()
@@ -2337,17 +2433,17 @@ class App:
         frame_tree = Frame(self.trans_detail)
         frame_tree.grid()
 
-        tree = ttk.Treeview(frame_tree,
+        self.tree = ttk.Treeview(frame_tree,
                             columns=['Route', 'Transport Type', 'Price', '# Connected Sites'],
-                            show='headings')
+                            show='headings', selectmode='browse')
 
-        tree.heading('Route', text='Route')
-        tree.heading('Transport Type', text='Transport Type')
-        tree.heading('Price', text='Price')
-        tree.heading("# Connected Sites", text='# Connected Sites')
-        tree.insert("", "end", values=("1", "2", "3", "4"))
-        tree.insert("", "end", values=("4", "5", "6", "7"))
-        tree.grid(row=1, column=3)
+        self.tree.heading('Route', text='Route')
+        self.tree.heading('Transport Type', text='Transport Type')
+        self.tree.heading('Price', text='Price')
+        self.tree.heading("# Connected Sites", text='# Connected Sites')
+        #self.tree.insert("", "end", values=("1", "2", "3", "4"))
+        #self.tree.insert("", "end", values=("4", "5", "6", "7"))
+        self.tree.grid(row=1, column=3)
 
         frame_under = Frame(self.trans_detail)
         frame_under.grid()
@@ -2443,16 +2539,16 @@ class App:
         frame_tree = Frame(self.visit_history_gui)
         frame_tree.grid()
 
-        tree = ttk.Treeview(frame_tree, columns=['Date', 'Event Name', 'Site', 'Price'],
-                            show='headings')
+        self.tree = ttk.Treeview(frame_tree, columns=['Date', 'Event Name', 'Site', 'Price'],
+                            show='headings', selectmode='browse')
 
-        tree.heading('Date', text='Date')
-        tree.heading('Event Name', text='Event Name')
-        tree.heading('Site', text='Site')
-        tree.heading('Price', text='Price')
-        tree.insert("", "end", values=("1", "2", "3", "4"))
-        tree.insert("", "end", values=("4", "5", "6", "7"))
-        tree.grid(row=1, column=3)
+        self.tree.heading('Date', text='Date')
+        self.tree.heading('Event Name', text='Event Name')
+        self.tree.heading('Site', text='Site')
+        self.tree.heading('Price', text='Price')
+        #self.tree.insert("", "end", values=("1", "2", "3", "4"))
+        #self.tree.insert("", "end", values=("4", "5", "6", "7"))
+        self.tree.grid(row=1, column=3)
 
         frame_under = Frame(self.visit_history_gui)
         frame_under.grid()
