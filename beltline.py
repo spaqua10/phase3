@@ -49,7 +49,7 @@ class App:
         self.new2 = Button(master, text="Register", command=self.register_nav)
         self.new2.grid(row=7)
 
-        self.new3 = Button(master, text = "event detail", command = self.visitor_event_detail)
+        self.new3 = Button(master, text = "Manage Profile", command = self.manage_profile)
         self.new3.grid(row = 8)
 
         self.connect()
@@ -917,7 +917,33 @@ class App:
         self.back = Button(frame_under, text="Back", command=self.back_view_site).grid(row=0, column=0)
 
     def back_view_site(self):
-        pass
+        self.currGui.withdraw()
+        if self.userType == "Employee, Visitor":
+            if self.UserSubtype == "Staff":
+                self.staff_visitor_functionality()
+                self.currGui = self.staffVisGUI
+            elif self.UserSubtype == "Admin":
+                self.admin_vis_functionality()
+                self.currGui = self.adminVisGUI
+            elif self.UserSubtype == "Manager":
+                self.manager_vis_functionality()
+                self.currGui = self.manVisGUI
+        elif self.userType == "Employee":
+            if self.UserSubtype == "Staff":
+                self.staff_visitor_functionality()
+                self.currGui = self.staffVisGUI
+            elif self.UserSubtype == "Admin":
+                self.admin_vis_functionality()
+                self.currGui = self.adminVisGUI
+            elif self.UserSubtype == "Manager":
+                self.manager_vis_functionality()
+                self.currGui = self.manVisGUI
+        elif self.userType == "Visitor":
+            self.visitor_functionality()
+            self.currGui = self.visitorGUI
+        elif self.userType == "User":
+            self.user_functionality()
+            self.currGui = self.navGUI
 
     def filter_view_site(self):
         pass
@@ -983,7 +1009,33 @@ class App:
         pass
 
     def back_view_staff(self):
-        pass
+        self.currGui.withdraw()
+        if self.userType == "Employee, Visitor":
+            if self.UserSubtype == "Staff":
+                self.staff_visitor_functionality()
+                self.currGui = self.staffVisGUI
+            elif self.UserSubtype == "Admin":
+                self.admin_vis_functionality()
+                self.currGui = self.adminVisGUI
+            elif self.UserSubtype == "Manager":
+                self.manager_vis_functionality()
+                self.currGui = self.manVisGUI
+        elif self.userType == "Employee":
+            if self.UserSubtype == "Staff":
+                self.staff_visitor_functionality()
+                self.currGui = self.staffVisGUI
+            elif self.UserSubtype == "Admin":
+                self.admin_vis_functionality()
+                self.currGui = self.adminVisGUI
+            elif self.UserSubtype == "Manager":
+                self.manager_vis_functionality()
+                self.currGui = self.manVisGUI
+        elif self.userType == "Visitor":
+            self.visitor_functionality()
+            self.currGui = self.visitorGUI
+        elif self.userType == "User":
+            self.user_functionality()
+            self.currGui = self.navGUI
 
     def manage_event(self):
         self.currGui.withdraw()
@@ -1079,7 +1131,33 @@ class App:
         pass
 
     def back_manage_event(self):
-        pass
+        self.currGui.withdraw()
+        if self.userType == "Employee, Visitor":
+            if self.UserSubtype == "Staff":
+                self.staff_visitor_functionality()
+                self.currGui = self.staffVisGUI
+            elif self.UserSubtype == "Admin":
+                self.admin_vis_functionality()
+                self.currGui = self.adminVisGUI
+            elif self.UserSubtype == "Manager":
+                self.manager_vis_functionality()
+                self.currGui = self.manVisGUI
+        elif self.userType == "Employee":
+            if self.UserSubtype == "Staff":
+                self.staff_visitor_functionality()
+                self.currGui = self.staffVisGUI
+            elif self.UserSubtype == "Admin":
+                self.admin_vis_functionality()
+                self.currGui = self.adminVisGUI
+            elif self.UserSubtype == "Manager":
+                self.manager_vis_functionality()
+                self.currGui = self.manVisGUI
+        elif self.userType == "Visitor":
+            self.visitor_functionality()
+            self.currGui = self.visitorGUI
+        elif self.userType == "User":
+            self.user_functionality()
+            self.currGui = self.navGUI
 
     def view_edit_event(self):
         self.currGui.withdraw()
@@ -1253,9 +1331,6 @@ class App:
     def view_visit_history(self):
         pass
 
-    def explore_site(self):
-        pass
-
     def view_transit_history(self):
         self.currGui.withdraw()
         self.view_tran = Toplevel()
@@ -1398,7 +1473,33 @@ class App:
                     self.tree.insert("", "end", values=(date, route, type, price))
 
     def back_transit_history(self):
-        pass
+        self.currGui.withdraw()
+        if self.userType == "Employee, Visitor":
+            if self.UserSubtype == "Staff":
+                self.staff_visitor_functionality()
+                self.currGui = self.staffVisGUI
+            elif self.UserSubtype == "Admin":
+                self.admin_vis_functionality()
+                self.currGui = self.adminVisGUI
+            elif self.UserSubtype == "Manager":
+                self.manager_vis_functionality()
+                self.currGui = self.manVisGUI
+        elif self.userType == "Employee":
+            if self.UserSubtype == "Staff":
+                self.staff_visitor_functionality()
+                self.currGui = self.staffVisGUI
+            elif self.UserSubtype == "Admin":
+                self.admin_vis_functionality()
+                self.currGui = self.adminVisGUI
+            elif self.UserSubtype == "Manager":
+                self.manager_vis_functionality()
+                self.currGui = self.manVisGUI
+        elif self.userType == "Visitor":
+            self.visitor_functionality()
+            self.currGui = self.visitorGUI
+        elif self.userType == "User":
+            self.user_functionality()
+            self.currGui = self.navGUI
 
     def explore_event(self):
         pass
@@ -1500,7 +1601,33 @@ class App:
         messagebox.showinfo("Success!!", "Your profile has been successfully updated!")
 
     def back_manage_profile(self):
-        pass
+        self.currGui.withdraw()
+        if self.userType == "Employee, Visitor":
+            if self.UserSubtype == "Staff":
+                self.staff_visitor_functionality()
+                self.currGui = self.staffVisGUI
+            elif self.UserSubtype == "Admin":
+                self.admin_vis_functionality()
+                self.currGui = self.adminVisGUI
+            elif self.UserSubtype == "Manager":
+                self.manager_vis_functionality()
+                self.currGui = self.manVisGUI
+        elif self.userType == "Employee":
+            if self.UserSubtype == "Staff":
+                self.staff_visitor_functionality()
+                self.currGui = self.staffVisGUI
+            elif self.UserSubtype == "Admin":
+                self.admin_vis_functionality()
+                self.currGui = self.adminVisGUI
+            elif self.UserSubtype == "Manager":
+                self.manager_vis_functionality()
+                self.currGui = self.manVisGUI
+        elif self.userType == "Visitor":
+            self.visitor_functionality()
+            self.currGui = self.visitorGUI
+        elif self.userType == "User":
+            self.user_functionality()
+            self.currGui = self.navGUI
 
     def manage_user(self):
         self.currGui.withdraw()
@@ -1687,7 +1814,33 @@ class App:
                     self.tree.insert("", "end", values=(username, count, type, status))
 
     def back_manage_user(self):
-        pass
+        self.currGui.withdraw()
+        if self.userType == "Employee, Visitor":
+            if self.UserSubtype == "Staff":
+                self.staff_visitor_functionality()
+                self.currGui = self.staffVisGUI
+            elif self.UserSubtype == "Admin":
+                self.admin_vis_functionality()
+                self.currGui = self.adminVisGUI
+            elif self.UserSubtype == "Manager":
+                self.manager_vis_functionality()
+                self.currGui = self.manVisGUI
+        elif self.userType == "Employee":
+            if self.UserSubtype == "Staff":
+                self.staff_visitor_functionality()
+                self.currGui = self.staffVisGUI
+            elif self.UserSubtype == "Admin":
+                self.admin_vis_functionality()
+                self.currGui = self.adminVisGUI
+            elif self.UserSubtype == "Manager":
+                self.manager_vis_functionality()
+                self.currGui = self.manVisGUI
+        elif self.userType == "Visitor":
+            self.visitor_functionality()
+            self.currGui = self.visitorGUI
+        elif self.userType == "User":
+            self.user_functionality()
+            self.currGui = self.navGUI
 
     def manage_transit(self):
         self.currGui.withdraw()
@@ -1760,7 +1913,33 @@ class App:
         pass
 
     def back_manage_transit(self):
-        pass
+        self.currGui.withdraw()
+        if self.userType == "Employee, Visitor":
+            if self.UserSubtype == "Staff":
+                self.staff_visitor_functionality()
+                self.currGui = self.staffVisGUI
+            elif self.UserSubtype == "Admin":
+                self.admin_vis_functionality()
+                self.currGui = self.adminVisGUI
+            elif self.UserSubtype == "Manager":
+                self.manager_vis_functionality()
+                self.currGui = self.manVisGUI
+        elif self.userType == "Employee":
+            if self.UserSubtype == "Staff":
+                self.staff_visitor_functionality()
+                self.currGui = self.staffVisGUI
+            elif self.UserSubtype == "Admin":
+                self.admin_vis_functionality()
+                self.currGui = self.adminVisGUI
+            elif self.UserSubtype == "Manager":
+                self.manager_vis_functionality()
+                self.currGui = self.manVisGUI
+        elif self.userType == "Visitor":
+            self.visitor_functionality()
+            self.currGui = self.visitorGUI
+        elif self.userType == "User":
+            self.user_functionality()
+            self.currGui = self.navGUI
 
     def create_transit(self):
         self.manageTranGui.withdraw()
@@ -1984,7 +2163,33 @@ class App:
             messagebox.showinfo("Success!!", "The Site have been successfully deleted")
 
     def back_manage_site(self):
-        pass
+        self.currGui.withdraw()
+        if self.userType == "Employee, Visitor":
+            if self.UserSubtype == "Staff":
+                self.staff_visitor_functionality()
+                self.currGui = self.staffVisGUI
+            elif self.UserSubtype == "Admin":
+                self.admin_vis_functionality()
+                self.currGui = self.adminVisGUI
+            elif self.UserSubtype == "Manager":
+                self.manager_vis_functionality()
+                self.currGui = self.manVisGUI
+        elif self.userType == "Employee":
+            if self.UserSubtype == "Staff":
+                self.staff_visitor_functionality()
+                self.currGui = self.staffVisGUI
+            elif self.UserSubtype == "Admin":
+                self.admin_vis_functionality()
+                self.currGui = self.adminVisGUI
+            elif self.UserSubtype == "Manager":
+                self.manager_vis_functionality()
+                self.currGui = self.manVisGUI
+        elif self.userType == "Visitor":
+            self.visitor_functionality()
+            self.currGui = self.visitorGUI
+        elif self.userType == "User":
+            self.user_functionality()
+            self.currGui = self.navGUI
 
     ###########################################################################
     def create_site(self):
@@ -2277,7 +2482,33 @@ class App:
 
     ###########################################################################
     def back_take_trans(self):
-        pass
+        self.currGui.withdraw()
+        if self.userType == "Employee, Visitor":
+            if self.UserSubtype == "Staff":
+                self.staff_visitor_functionality()
+                self.currGui = self.staffVisGUI
+            elif self.UserSubtype == "Admin":
+                self.admin_vis_functionality()
+                self.currGui = self.adminVisGUI
+            elif self.UserSubtype == "Manager":
+                self.manager_vis_functionality()
+                self.currGui = self.manVisGUI
+        elif self.userType == "Employee":
+            if self.UserSubtype == "Staff":
+                self.staff_visitor_functionality()
+                self.currGui = self.staffVisGUI
+            elif self.UserSubtype == "Admin":
+                self.admin_vis_functionality()
+                self.currGui = self.adminVisGUI
+            elif self.UserSubtype == "Manager":
+                self.manager_vis_functionality()
+                self.currGui = self.manVisGUI
+        elif self.userType == "Visitor":
+            self.visitor_functionality()
+            self.currGui = self.visitorGUI
+        elif self.userType == "User":
+            self.user_functionality()
+            self.currGui = self.navGUI
 
     ###########################################################################
     def log_transit(self):
@@ -2294,7 +2525,33 @@ class App:
 
 
     def on_backbutton_clicked(self):
-        self.frame()
+        self.currGui.withdraw()
+        if self.userType == "Employee, Visitor":
+            if self.UserSubtype == "Staff":
+                self.staff_visitor_functionality()
+                self.currGui = self.staffVisGUI
+            elif self.UserSubtype == "Admin":
+                self.admin_vis_functionality()
+                self.currGui = self.adminVisGUI
+            elif self.UserSubtype == "Manager":
+                self.manager_vis_functionality()
+                self.currGui = self.manVisGUI
+        elif self.userType == "Employee":
+            if self.UserSubtype == "Staff":
+                self.staff_visitor_functionality()
+                self.currGui = self.staffVisGUI
+            elif self.UserSubtype == "Admin":
+                self.admin_vis_functionality()
+                self.currGui = self.adminVisGUI
+            elif self.UserSubtype == "Manager":
+                self.manager_vis_functionality()
+                self.currGui = self.manVisGUI
+        elif self.userType == "Visitor":
+            self.visitor_functionality()
+            self.currGui = self.visitorGUI
+        elif self.userType == "User":
+            self.user_functionality()
+            self.currGui = self.navGUI
 
     def daily_detail(self):
         self.currGui.withdraw()
@@ -2388,7 +2645,33 @@ class App:
         pass
 
     def back_view_schedule(self):
-        pass
+        self.currGui.withdraw()
+        if self.userType == "Employee, Visitor":
+            if self.UserSubtype == "Staff":
+                self.staff_visitor_functionality()
+                self.currGui = self.staffVisGUI
+            elif self.UserSubtype == "Admin":
+                self.admin_vis_functionality()
+                self.currGui = self.adminVisGUI
+            elif self.UserSubtype == "Manager":
+                self.manager_vis_functionality()
+                self.currGui = self.manVisGUI
+        elif self.userType == "Employee":
+            if self.UserSubtype == "Staff":
+                self.staff_visitor_functionality()
+                self.currGui = self.staffVisGUI
+            elif self.UserSubtype == "Admin":
+                self.admin_vis_functionality()
+                self.currGui = self.adminVisGUI
+            elif self.UserSubtype == "Manager":
+                self.manager_vis_functionality()
+                self.currGui = self.manVisGUI
+        elif self.userType == "Visitor":
+            self.visitor_functionality()
+            self.currGui = self.visitorGUI
+        elif self.userType == "User":
+            self.user_functionality()
+            self.currGui = self.navGUI
 
     def staff_event_detail(self):
         self.currGui.withdraw()
@@ -2543,7 +2826,33 @@ class App:
         pass
 
     def back_explore_event(self):
-        pass
+        self.currGui.withdraw()
+        if self.userType == "Employee, Visitor":
+            if self.UserSubtype == "Staff":
+                self.staff_visitor_functionality()
+                self.currGui = self.staffVisGUI
+            elif self.UserSubtype == "Admin":
+                self.admin_vis_functionality()
+                self.currGui = self.adminVisGUI
+            elif self.UserSubtype == "Manager":
+                self.manager_vis_functionality()
+                self.currGui = self.manVisGUI
+        elif self.userType == "Employee":
+            if self.UserSubtype == "Staff":
+                self.staff_visitor_functionality()
+                self.currGui = self.staffVisGUI
+            elif self.UserSubtype == "Admin":
+                self.admin_vis_functionality()
+                self.currGui = self.adminVisGUI
+            elif self.UserSubtype == "Manager":
+                self.manager_vis_functionality()
+                self.currGui = self.manVisGUI
+        elif self.userType == "Visitor":
+            self.visitor_functionality()
+            self.currGui = self.visitorGUI
+        elif self.userType == "User":
+            self.user_functionality()
+            self.currGui = self.navGUI
 
     def visitor_event_detail(self):
         self.currGui.withdraw()
@@ -2692,7 +3001,21 @@ class App:
         pass
 
     def back_explore_site(self):
-        pass
+        self.currGui.withdraw()
+        if self.userType == "Employee, Visitor":
+            if self.UserSubtype == "Staff":
+                self.staff_visitor_functionality()
+                self.currGui = self.staffVisGUI
+            elif self.UserSubtype == "Admin":
+                self.admin_vis_functionality()
+                self.currGui = self.adminVisGUI
+            elif self.UserSubtype == "Manager":
+                self.manager_vis_functionality()
+                self.currGui = self.manVisGUI
+        elif self.userType == "Visitor":
+            self.visitor_functionality()
+            self.currGui = self.visitorGUI
+
 
     def transit_detail(self):
         self.currGui.withdraw()
@@ -2845,7 +3168,33 @@ class App:
         pass
 
     def back_visit_history(self):
-        pass
+        self.currGui.withdraw()
+        if self.userType == "Employee, Visitor":
+            if self.UserSubtype == "Staff":
+                self.staff_visitor_functionality()
+                self.currGui = self.staffVisGUI
+            elif self.UserSubtype == "Admin":
+                self.admin_vis_functionality()
+                self.currGui = self.adminVisGUI
+            elif self.UserSubtype == "Manager":
+                self.manager_vis_functionality()
+                self.currGui = self.manVisGUI
+        elif self.userType == "Employee":
+            if self.UserSubtype == "Staff":
+                self.staff_visitor_functionality()
+                self.currGui = self.staffVisGUI
+            elif self.UserSubtype == "Admin":
+                self.admin_vis_functionality()
+                self.currGui = self.adminVisGUI
+            elif self.UserSubtype == "Manager":
+                self.manager_vis_functionality()
+                self.currGui = self.manVisGUI
+        elif self.userType == "Visitor":
+            self.visitor_functionality()
+            self.currGui = self.visitorGUI
+        elif self.userType == "User":
+            self.user_functionality()
+            self.currGui = self.navGUI
 
 
 
