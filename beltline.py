@@ -2168,7 +2168,7 @@ class App:
 
         Label(frame, text="Sort By: ").grid(row=1, column=4)
         self.sort = StringVar()
-        choices = ['Transport Type', 'Price', '# Connected Sites', 'None']
+        choices = ['Transport Type', 'Price', 'Transport Type Desc', 'Price Desc', 'None']
         self.sort.set('None')
         self.popup = OptionMenu(frame, self.sort, *choices)
         self.popup.grid(row=1, column = 5)
@@ -2185,8 +2185,6 @@ class App:
         self.tree.heading('Transport Type', text='Transport Type')
         self.tree.heading('Price', text='Price')
         self.tree.heading("# Connected Sites", text='# Connected Sites')
-        #self.tree.bind('<Button-1>', self.onSingleClick)
-        #self.tree.bind("<Double-1>", self.OnDoubleClick)
         self.tree.grid(row=1, column=3)
 
         frame_under = Frame(self.take_tran)
@@ -2212,7 +2210,17 @@ class App:
         for i in self.tree.get_children():
             self.tree.delete(i)
         if self.destination.get() == 'All' and self.trans_type.get() == 'All' and self.price_lower.get() == 0 and self.price_upper.get() == 0:
-            query = "Select Transit_route, Transit_type, Price from Transit"
+            query = ""
+            if self.sort.get() == "Transport Type":
+                query = "Select Transit_route, Transit_type, Price from Transit order by Transit_type"
+            elif self.sort.get() == "Price":
+                query = "Select Transit_route, Transit_type, Price from Transit order by Price"
+            elif self.sort.get() == "Transport Type Desc":
+                query = "Select Transit_route, Transit_type, Price from Transit order by Transit_type desc"
+            elif self.sort.get() == "Price Desc":
+                query = "Select Transit_route, Transit_type, Price from Transit order by Price desc"
+            else:
+                query = "Select Transit_route, Transit_type, Price from Transit"
             self.cursor.execute(query)
             transits = self.cursor.fetchall()
             for transit in transits:
@@ -2246,6 +2254,16 @@ class App:
                     query = query + " and " + price
             else:
                 query = query + price
+            if self.sort.get() == "Transport Type":
+                query = query + " order by Transit_type"
+            elif self.sort.get() == "Price":
+                query = query + " order by Price"
+            elif self.sort.get() == "Transport Type Desc":
+                query = query + " order by Transit_type desc"
+            elif self.sort.get() == "Price Desc":
+                query = query + " order by Price desc"
+            else:
+                query = query
             self.cursor.execute(query)
             results = self.cursor.fetchall()
             for transit in results:
