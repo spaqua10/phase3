@@ -1,6 +1,6 @@
 from tkinter import *
 from tkinter import ttk, messagebox
-import datetime
+import hashlib
 
 
 class App:
@@ -49,14 +49,15 @@ class App:
         self.new2 = Button(master, text="Register", command=self.register_nav)
         self.new2.grid(row=7)
 
-        self.new3 = Button(master, text = "Manage Profile", command = self.manage_profile)
+        self.new3 = Button(master, text = "event detail", command = self.visitor_event_detail)
         self.new3.grid(row = 8)
 
         self.connect()
 
         self.cursor = self.db.cursor()
 
-        #print(self.userType)
+        print(self.userType)
+        self.hash_all_passwords()
 
     ###########################################################################
     # this function connects to the db
@@ -105,13 +106,23 @@ class App:
         except:
             messagebox.showinfo("Error!", "We Could Not Find a User With That Username")
 
+        userName = self.user.get().__str__()
+        userPassword = self.passwd.get().__str__()
+        print(userPassword)
+
         # User Only
         if self.userType == "User":
-           self.user_functionality()
+            if self.check_password(userName, userPassword):
+                self.user_functionality()
+            else:
+                messagebox.showinfo("Error!", "Your Password was Incorrect")
 
 
         elif self.userType == "Visitor":
-            self.visitor_functionality()
+            if self.check_password(userName,userPassword):
+                self.visitor_functionality()
+            else :
+                messagebox.showinfo("Error!", "Your Password was Incorrect")
 
         # Employee Only
         elif self.userType == "Employee":
@@ -120,11 +131,20 @@ class App:
             self.UserSubtype = self.cursor.fetchone()[0]
 
             if self.UserSubtype == "Staff":
-                self.staff_only_functionality()
+                if self.check_password(userName, userPassword):
+                    self.staff_only_functionality()
+                else:
+                    messagebox.showinfo("Error!", "Your Password was Incorrect")
             elif self.UserSubtype == "Admin":
-                self.admin_only_functionality()
+                if self.check_password(userName, userPassword):
+                    self.admin_only_functionality()
+                else:
+                    messagebox.showinfo("Error!", "Your Password was Incorrect")
             elif self.UserSubtype == "Manager":
-                self.admin_only_functionality()
+                if self.check_password(userName, userPassword):
+                    self.manager_only_functionality()
+                else:
+                    messagebox.showinfo("Error!", "Your Password was Incorrect")
 
         # Employee and Visitor
         if self.userType == "Employee, Visitor":
@@ -133,11 +153,49 @@ class App:
             self.UserSubtype = self.cursor.fetchone()[0]
 
             if self.UserSubtype == "Staff":
-                self.staff_visitor_functionality()
+                if self.check_password(userName, userPassword):
+                    self.staff_visitor_functionality()
+                else:
+                    messagebox.showinfo("Error!", "Your Password was Incorrect")
             elif self.UserSubtype == "Admin":
-                self.admin_vis_functionality()
+                if self.check_password(userName, userPassword):
+                    self.admin_vis_functionality()
+                else:
+                    messagebox.showinfo("Error!", "Your Password was Incorrect")
             elif self.UserSubtype == "Manager":
-                self.manager_vis_functionality()
+                if self.check_password(userName, userPassword):
+                    self.manager_vis_functionality()
+                else:
+                    messagebox.showinfo("Error!", "Your Password was Incorrect")
+
+    def check_password(self, username ,password):
+        self.cursor.execute("SELECT User_password from normalUser WHERE Username ='" + username + "'")
+        #Gets Password from Database
+        databsePassword = self.cursor.fetchone()[0]
+
+        #Hashes Password Given
+        tempPass = hashlib.md5(password.encode())
+        testPassword = tempPass.hexdigest()
+
+        if databsePassword == testPassword:
+            return True
+        else :
+            return False
+
+    def hash_all_passwords(self):
+        rows = self.cursor.execute("SELECT User_password from normaluser")
+        cnt = 0
+        print(rows)
+        for password in self.cursor.fetchall():
+            normalPassword = password
+            hashedPassword = hashlib.md5(normalPassword[0].encode())
+            print()
+            self.cursor.execute("UPDATE beltline.normaluser SET User_password = '"+ hashedPassword.hexdigest() + "' WHERE User_password = '" + normalPassword[0]+"'")
+
+
+
+
+
 
     ###########################################################################
     # TODO: still need to finish this, the screen is not complete yet
@@ -898,18 +956,18 @@ class App:
         frame_tree = Frame(self.site_report)
         frame_tree.grid()
 
-        self.tree = ttk.Treeview(frame_tree,
+        tree = ttk.Treeview(frame_tree,
                             columns=['Date', 'Event Count', 'Staff Count', 'Total Visits', 'Total Revenue ($)'],
-                            show='headings', selectmode='browse')
+                            show='headings')
 
-        self.tree.heading('Date', text='Date')
-        self.tree.heading('Event Count', text='Event Count')
-        self.tree.heading('Staff Count', text='Staff Count')
-        self.tree.heading('Total Visits', text='Total Visits')
-        self.tree.heading('Total Revenue ($)', text="Total Revenue ($)")
-        #self.tree.insert("", "end", values=("1", "2", "3", "4", "6"))
-        #self.tree.insert("", "end", values=("4", "5", "6", "7", "8"))
-        self.tree.grid(row=1, column=3)
+        tree.heading('Date', text='Date')
+        tree.heading('Event Count', text='Event Count')
+        tree.heading('Staff Count', text='Staff Count')
+        tree.heading('Total Visits', text='Total Visits')
+        tree.heading('Total Revenue ($)', text="Total Revenue ($)")
+        tree.insert("", "end", values=("1", "2", "3", "4", "6"))
+        tree.insert("", "end", values=("4", "5", "6", "7", "8"))
+        tree.grid(row=1, column=3)
 
         frame_under = Frame(self.site_report)
         frame_under.grid()
@@ -917,33 +975,7 @@ class App:
         self.back = Button(frame_under, text="Back", command=self.back_view_site).grid(row=0, column=0)
 
     def back_view_site(self):
-        self.currGui.withdraw()
-        if self.userType == "Employee, Visitor":
-            if self.UserSubtype == "Staff":
-                self.staff_visitor_functionality()
-                self.currGui = self.staffVisGUI
-            elif self.UserSubtype == "Admin":
-                self.admin_vis_functionality()
-                self.currGui = self.adminVisGUI
-            elif self.UserSubtype == "Manager":
-                self.manager_vis_functionality()
-                self.currGui = self.manVisGUI
-        elif self.userType == "Employee":
-            if self.UserSubtype == "Staff":
-                self.staff_visitor_functionality()
-                self.currGui = self.staffVisGUI
-            elif self.UserSubtype == "Admin":
-                self.admin_vis_functionality()
-                self.currGui = self.adminVisGUI
-            elif self.UserSubtype == "Manager":
-                self.manager_vis_functionality()
-                self.currGui = self.manVisGUI
-        elif self.userType == "Visitor":
-            self.visitor_functionality()
-            self.currGui = self.visitorGUI
-        elif self.userType == "User":
-            self.user_functionality()
-            self.currGui = self.navGUI
+        pass
 
     def filter_view_site(self):
         pass
@@ -991,14 +1023,14 @@ class App:
         frame_tree = Frame(self.view_staff)
         frame_tree.grid()
 
-        self.tree = ttk.Treeview(frame_tree, columns=['Staff Name', '# Event Shifts'],
-                            show='headings', selectmode='browse')
+        tree = ttk.Treeview(frame_tree, columns=['Staff Name', '# Event Shifts'],
+                            show='headings')
 
-        self.tree.heading('Staff Name', text='Staff Name')
-        self.tree.heading('# Event Shifts', text='# Events Shifts')
-        #self.tree.insert("", "end", values=("1", "2"))
-        #self.tree.insert("", "end", values=("4", "5"))
-        self.tree.grid(row=1, column=3)
+        tree.heading('Staff Name', text='Staff Name')
+        tree.heading('# Event Shifts', text='# Events Shifts')
+        tree.insert("", "end", values=("1", "2"))
+        tree.insert("", "end", values=("4", "5"))
+        tree.grid(row=1, column=3)
 
         frame_under = Frame(self.view_staff)
         frame_under.grid()
@@ -1009,33 +1041,7 @@ class App:
         pass
 
     def back_view_staff(self):
-        self.currGui.withdraw()
-        if self.userType == "Employee, Visitor":
-            if self.UserSubtype == "Staff":
-                self.staff_visitor_functionality()
-                self.currGui = self.staffVisGUI
-            elif self.UserSubtype == "Admin":
-                self.admin_vis_functionality()
-                self.currGui = self.adminVisGUI
-            elif self.UserSubtype == "Manager":
-                self.manager_vis_functionality()
-                self.currGui = self.manVisGUI
-        elif self.userType == "Employee":
-            if self.UserSubtype == "Staff":
-                self.staff_visitor_functionality()
-                self.currGui = self.staffVisGUI
-            elif self.UserSubtype == "Admin":
-                self.admin_vis_functionality()
-                self.currGui = self.adminVisGUI
-            elif self.UserSubtype == "Manager":
-                self.manager_vis_functionality()
-                self.currGui = self.manVisGUI
-        elif self.userType == "Visitor":
-            self.visitor_functionality()
-            self.currGui = self.visitorGUI
-        elif self.userType == "User":
-            self.user_functionality()
-            self.currGui = self.navGUI
+        pass
 
     def manage_event(self):
         self.currGui.withdraw()
@@ -1106,18 +1112,18 @@ class App:
         frame_tree = Frame(self.manage_event)
         frame_tree.grid()
 
-        self.tree = ttk.Treeview(frame_tree,
+        tree = ttk.Treeview(frame_tree,
                             columns=['Name', 'Staff Count', 'Duration (Days)', 'Total Visits', 'Total Revenue'],
-                            show='headings', selectmode='browse')
+                            show='headings')
 
-        self.tree.heading('Name', text='Name')
-        self.tree.heading('Staff Count', text='Staff Count')
-        self.tree.heading('Duration (Days)', text='Duration (Days)')
-        self.tree.heading('Total Visits', text='Total Visits')
-        self.tree.heading('Total Revenue', text="Total Revenue")
-        #self.tree.insert("", "end", values=("1", "2", "3", "4", "6"))
-        #self.tree.insert("", "end", values=("4", "5", "6", "7", "8"))
-        self.tree.grid(row=1, column=3)
+        tree.heading('Name', text='Name')
+        tree.heading('Staff Count', text='Staff Count')
+        tree.heading('Duration (Days)', text='Duration (Days)')
+        tree.heading('Total Visits', text='Total Visits')
+        tree.heading('Total Revenue', text="Total Revenue")
+        tree.insert("", "end", values=("1", "2", "3", "4", "6"))
+        tree.insert("", "end", values=("4", "5", "6", "7", "8"))
+        tree.grid(row=1, column=3)
 
         frame_under = Frame(self.manage_event)
         frame_under.grid()
@@ -1131,33 +1137,7 @@ class App:
         pass
 
     def back_manage_event(self):
-        self.currGui.withdraw()
-        if self.userType == "Employee, Visitor":
-            if self.UserSubtype == "Staff":
-                self.staff_visitor_functionality()
-                self.currGui = self.staffVisGUI
-            elif self.UserSubtype == "Admin":
-                self.admin_vis_functionality()
-                self.currGui = self.adminVisGUI
-            elif self.UserSubtype == "Manager":
-                self.manager_vis_functionality()
-                self.currGui = self.manVisGUI
-        elif self.userType == "Employee":
-            if self.UserSubtype == "Staff":
-                self.staff_visitor_functionality()
-                self.currGui = self.staffVisGUI
-            elif self.UserSubtype == "Admin":
-                self.admin_vis_functionality()
-                self.currGui = self.adminVisGUI
-            elif self.UserSubtype == "Manager":
-                self.manager_vis_functionality()
-                self.currGui = self.manVisGUI
-        elif self.userType == "Visitor":
-            self.visitor_functionality()
-            self.currGui = self.visitorGUI
-        elif self.userType == "User":
-            self.user_functionality()
-            self.currGui = self.navGUI
+        pass
 
     def view_edit_event(self):
         self.currGui.withdraw()
@@ -1233,15 +1213,15 @@ class App:
         frame_tree = Frame(self.view_event)
         frame_tree.grid()
 
-        self.tree = ttk.Treeview(frame_tree, columns=['Date', 'Daily Visits', 'Daily Revenue'],
-                            show='headings', selectmode='browse')
+        tree = ttk.Treeview(frame_tree, columns=['Date', 'Daily Visits', 'Daily Revenue'],
+                            show='headings')
 
-        self.tree.heading('Date', text='Date')
-        self.tree.heading('Daily Visits', text='Daily Visits')
-        self.tree.heading('Daily Revenue', text='Daily Revenue')
-        #self.tree.insert("", "end", values=("1", "2", "3"))
-        #self.tree.insert("", "end", values=("4", "5", "6"))
-        self.tree.grid(row=1, column=3)
+        tree.heading('Date', text='Date')
+        tree.heading('Daily Visits', text='Daily Visits')
+        tree.heading('Daily Revenue', text='Daily Revenue')
+        tree.insert("", "end", values=("1", "2", "3"))
+        tree.insert("", "end", values=("4", "5", "6"))
+        tree.grid(row=1, column=3)
 
         frame_under = Frame(self.view_event)
         frame_under.grid()
@@ -1331,6 +1311,9 @@ class App:
     def view_visit_history(self):
         pass
 
+    def explore_site(self):
+        pass
+
     def view_transit_history(self):
         self.currGui.withdraw()
         self.view_tran = Toplevel()
@@ -1349,16 +1332,9 @@ class App:
         self.popup = OptionMenu(frame, self.trans_type, *choices_type)
         self.popup.grid(row=0, column=1)
 
-        query = "Select Distinct SiteName from Site"
-        self.cursor.execute(query)
-        sites = self.cursor.fetchall()
-
         Label(frame, text="Contain Site ").grid(row=0, column=2)
         self.destination = StringVar()
-        choices = []
-        for site in sites:
-            choices.append(site[0])
-        choices.append('All')
+        choices = ["Manager", "Staff", "All"]
         self.destination.set("All")
         self.popupMenu = OptionMenu(frame, self.destination, *choices)
         self.popupMenu.grid(row=0, column=3)
@@ -1378,26 +1354,21 @@ class App:
         self.end_date_enter = Entry(frame, textvariable=self.end_date)
         self.end_date_enter.grid(row=1, column=5)
 
-        Label(frame, text="Sort By: ").grid(row=2, column=0)
-        self.sort = StringVar()
-        choices = ['Date', 'Route', 'Transport Type', 'Price','Date Desc', 'Route Desc', 'Transport Type Desc', 'Price Desc', 'None']
-        self.sort.set('None')
-        self.popup = OptionMenu(frame, self.sort, *choices)
-        self.popup.grid(row=2, column = 1)
-
-        self.filter = Button(frame, text="Filter", command=self.filter_transit_history).grid(row=2, column=2)
+        self.filter = Button(frame, text="Filter", command=self.filter_transit_history).grid(row=2, column=0)
 
         frame_tree = Frame(self.view_tran)
         frame_tree.grid()
 
-        self.tree = ttk.Treeview(frame_tree, columns=['Date', 'Route', 'Transport Type', 'Price'],
-                            show='headings', selectmode='browse')
+        tree = ttk.Treeview(frame_tree, columns=['Date', 'Route', 'Transport Type', 'Price'],
+                            show='headings')
 
-        self.tree.heading('Date', text='Date')
-        self.tree.heading('Route', text='Route')
-        self.tree.heading('Transport Type', text='Transport Type')
-        self.tree.heading('Price', text='Price')
-        self.tree.grid(row=1, column=3)
+        tree.heading('Date', text='Date')
+        tree.heading('Route', text='Route')
+        tree.heading('Transport Type', text='Transport Type')
+        tree.heading('Price', text='Price')
+        tree.insert("", "end", values=("1", "2", "3", "4"))
+        tree.insert("", "end", values=("4", "5", "6", "7"))
+        tree.grid(row=1, column=3)
 
         frame_under = Frame(self.view_tran)
         frame_under.grid()
@@ -1405,144 +1376,10 @@ class App:
         self.back = Button(frame_under, text="Back", command=self.back_transit_history).grid(row=0, column=0)
 
     def filter_transit_history(self):
-        for i in self.tree.get_children():
-            self.tree.delete(i)
-        if self.destination.get() == 'All' and self.trans_type.get() == 'All' and self.route.get() == "" and self.start_date.get() == "" and self.end_date.get() == "":
-            query = ""
-            if self.sort.get() == "Date":
-                query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s' order by DateTaken" % self.user.get()
-            elif self.sort.get() == "Route":
-                query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s' order by Transit_route" % self.user.get()
-            elif self.sort.get() == "Transport Type":
-                query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s' order by Transit_type" % self.user.get()
-            elif self.sort.get() == "Price":
-                query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s' order by price" % self.user.get()
-            elif self.sort.get() == "Date Desc":
-                query = query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s' order by DateTaken desc" % self.user.get()
-            elif self.sort.get() == "Route Desc":
-                query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s' order by Transit_route desc" % self.user.get()
-            elif self.sort.get() == "Transport Type Desc":
-                query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s' order by Transit_type desc" % self.user.get()
-            elif self.sort.get() == "Price Desc":
-                query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s' order by price desc" % self.user.get()
-            else:
-                query = query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s'" % self.user.get()
-            self.cursor.execute(query)
-            transits = self.cursor.fetchall()
-            for transit in transits:
-                date = transit[0]
-                route = transit[1]
-                type = transit[2]
-                price = transit[3]
-                self.tree.insert("", "end", values=(date, route, type, price))
-        else:
-            query = "select Distinct DateTaken, a.Transit_route, a.Transit_Type, price from transit a join takes b join connects c on b.transit_route = a.Transit_Route and b.transit_route = c.TransitRoute where b.username = '%s' " % (self.user.get())
-            site = ""
-            trans = ""
-            route = ""
-            date = ""
-            startd = None
-            endd = None
-            greater = False
-            if self.start_date.get() != "" and self.end_date.get() != "": #and self.start_date.get() <= self.end_date.get():
-                start = [x.strip() for x in self.start_date.get().split('-')]
-                end = [x.strip() for x in self.end_date.get().split('-')]
-                startd = datetime.datetime(int(start[0], 10), int(start[1], 10), int(start[2], 10))
-                endd = datetime.datetime(int(end[0], 10), int(end[1], 10), int(end[2], 10))
-            if startd != None and endd != None:
-                if startd > endd:
-                    greater = True
-            if greater == True:
-                messagebox.showwarning("Date", "The start date must be before the end date")
-            elif self.start_date.get() == "" and self.end_date.get() != "":
-                messagebox.showwarning("Date", "There must be a start and end date. They can be the same date")
-            elif self.start_date.get() != "" and self.end_date.get() == "":
-                messagebox.showwarning("Date", "There must be a start and end date. They can be the same date")
-            else:
-                if self.destination.get() != "All":
-                    site = "c.SiteName = '" + self.destination.get() + "'"
-                if self.trans_type.get() != "All":
-                    trans = "a.Transit_Type = '" + self.trans_type.get() + "'"
-                if self.route.get() != "":
-                    route = "a.Transit_route = '" + self.route.get() + "'"
-                if self.start_date.get() != "" and self.end_date.get() !="" and self.start_date.get() <= self.end_date.get():
-                    date = "DateTaken between '" + self.start_date.get() + "'" + " and '" + self.end_date.get() + "'"
-                if site != "":
-                    query = query + "and " + site
-                    if trans != "":
-                        query = query + " and " + trans
-                    if route != "":
-                        query = query + " and " + route
-                    if date != "":
-                        query = query + " and " + date
-                elif trans != "":
-                    query = query + "and " + trans
-                    if route != "":
-                        query = query + " and " + route
-                    if date != "":
-                        query = query + " and " + date
-                elif route != "":
-                    query = query + "and " + route
-                    if date != "":
-                        query = query + " and " + date
-                else:
-                    query = query + "and " + date
-                query = ""
-                if self.sort.get() == "Date":
-                    query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s' order by DateTaken" % self.user.get()
-                elif self.sort.get() == "Route":
-                    query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s' order by Transit_route" % self.user.get()
-                elif self.sort.get() == "Transport Type":
-                    query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s' order by Transit_type" % self.user.get()
-                elif self.sort.get() == "Price":
-                    query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s' order by price" % self.user.get()
-                elif self.sort.get() == "Date Desc":
-                    query = query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s' order by DateTaken desc" % self.user.get()
-                elif self.sort.get() == "Route Desc":
-                    query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s' order by Transit_route desc" % self.user.get()
-                elif self.sort.get() == "Transport Type Desc":
-                    query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s' order by Transit_type desc" % self.user.get()
-                elif self.sort.get() == "Price Desc":
-                    query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s' order by price desc" % self.user.get()
-                else:
-                    query = query = "Select Distinct DateTaken, a.Transit_route, a.Transit_type, price from transit a join takes b on b.transit_route = a.Transit_Route where username = '%s'" % self.user.get()
-                self.cursor.execute(query)
-                results = self.cursor.fetchall()
-                for transit in results:
-                    date = transit[0]
-                    route = transit[1]
-                    type = transit[2]
-                    price = transit[3]
-                    self.tree.insert("", "end", values=(date, route, type, price))
+        pass
 
     def back_transit_history(self):
-        self.currGui.withdraw()
-        if self.userType == "Employee, Visitor":
-            if self.UserSubtype == "Staff":
-                self.staff_visitor_functionality()
-                self.currGui = self.staffVisGUI
-            elif self.UserSubtype == "Admin":
-                self.admin_vis_functionality()
-                self.currGui = self.adminVisGUI
-            elif self.UserSubtype == "Manager":
-                self.manager_vis_functionality()
-                self.currGui = self.manVisGUI
-        elif self.userType == "Employee":
-            if self.UserSubtype == "Staff":
-                self.staff_visitor_functionality()
-                self.currGui = self.staffVisGUI
-            elif self.UserSubtype == "Admin":
-                self.admin_vis_functionality()
-                self.currGui = self.adminVisGUI
-            elif self.UserSubtype == "Manager":
-                self.manager_vis_functionality()
-                self.currGui = self.manVisGUI
-        elif self.userType == "Visitor":
-            self.visitor_functionality()
-            self.currGui = self.visitorGUI
-        elif self.userType == "User":
-            self.user_functionality()
-            self.currGui = self.navGUI
+        pass
 
     def explore_event(self):
         pass
@@ -1558,119 +1395,51 @@ class App:
         frame = Frame(self.manageProGui)
         frame.grid()
 
-        query = "select firstname, lastname, phone from normaluser a join employee b on a.username = b.username where a.username = '%s'" % (self.user.get())
-        self.cursor.execute(query)
-        result = self.cursor.fetchone()
-
         Label(frame, text="First Name: ").grid(row=0, column=0)
         self.fname = StringVar()
         self.fname_enter = Entry(frame, textvariable=self.fname)
         self.fname_enter.grid(row=0, column=1)
-        self.fname.set(result[0])
 
         Label(frame, text="Last Name: ").grid(row=0, column=2)
         self.lname = StringVar()
         self.lname_enter = Entry(frame, textvariable=self.lname)
         self.lname_enter.grid(row=0, column=3)
-        self.lname.set(result[1])
 
         Label(frame, text="Username: ").grid(row=1, column=0)
-        Label(frame, text=self.user.get()).grid(row=1, column=1)
-
-        query = "Select sitename from site where managerID = '%s'" % (self.user.get())
-        self.cursor.execute(query)
-        result1 = self.cursor.fetchone()
+        Label(frame, text='user').grid(row=1, column=1)
 
         Label(frame, text="Site Name: ").grid(row=1, column=2)
-        text = ""
-        if result1 != None:
-            test = result1[0]
-        Label(frame, text=text).grid(row=1, column=3)
-
-        query = "Select employee_ID, concat(employee_address,', ', employee_city,', ', employee_state, ' ', employee_zipcode) as Address from employee where username = '%s'" % (self.user.get())
-        self.cursor.execute(query)
-        result2 = self.cursor.fetchone()
+        Label(frame, text="Site").grid(row=1, column=3)
 
         Label(frame, text="Employee ID: ").grid(row=2, column=0)
-        Label(frame, text=result2[0]).grid(row=2, column=1)
+        Label(frame, text="123456789").grid(row=2, column=1)
 
         Label(frame, text="Phone ").grid(row=2, column=2)
         self.phone = IntVar()
         self.phone_enter = Entry(frame, textvariable=self.phone)
         self.phone_enter.grid(row=2, column=3)
-        self.phone.set(result[2])
 
         Label(frame, text="Address: ").grid(row=3, column=0)
-        Label(frame, text = result2[1]).grid(row=3, column=1)
-
-        query = "Select email from email where username = '%s'" % (self.user.get())
-        self.cursor.execute(query)
-        result3 = self.cursor.fetchall()
-        email_c = ""
-        for email in result3:
-            email_c = email_c + " " + email[0] + ","
-        self.prev_email = email_c
+        #TODO Rewrite This with Query To Get Address
+        self.address = "Temp Address"
+        Label(frame, text = self.address).grid(row=3, column=1)
 
         Label(frame, text="Email: ").grid(row=4, column=0)
         self.email = StringVar()
         self.email_enter = Entry(frame, textvariable=self.email)
         self.email_enter.grid(row=4, column=1)
-        self.email.set(email_c)
-
-        query = "Select * from Visitor where Username = '%s'" % (self.user.get())
-        vis = self.cursor.execute(query)
 
         self.visitor = IntVar()
-        self.visitor.set(vis)
         Checkbutton(frame, text="Visitor Account", variable=self.visitor).grid(row=5, column=0)
 
         self.registerUser = Button(frame, text="Update", command=self.update_profile).grid(row=6, column=0)
         self.registerUser = Button(frame, text="Back", command=self.back_manage_profile).grid(row=6, column=1)
 
     def update_profile(self):
-        query = "Update NormalUser set Firstname = '%s', LastName = '%s' where Username = '%s'" % (self.fname.get(), self.lname.get(), self.user.get())
-        queryb = "Update Employee set Phone = '%s' where Username = '%s'" % (self.phone.get(), self.user.get())
-        self.cursor.execute(query)
-        self.cursor.execute(queryb)
-        email_split = [x.strip() for x in self.email.get().split(',')]
-        for email in email_split:
-            if email != "" and email not in self.prev_email:
-                querye = "Insert into Email values('%s', '%s')" % (self.user.get(), email)
-                self.cursor.execute(querye)
-        if self.visitor.get() == 0:
-            queryd = "delete from visitor where username = '%s'" % (self.user.get())
-            self.cursor.execute(queryd)
-        self.db.commit()
-        messagebox.showinfo("Success!!", "Your profile has been successfully updated!")
+        pass
 
     def back_manage_profile(self):
-        self.currGui.withdraw()
-        if self.userType == "Employee, Visitor":
-            if self.UserSubtype == "Staff":
-                self.staff_visitor_functionality()
-                self.currGui = self.staffVisGUI
-            elif self.UserSubtype == "Admin":
-                self.admin_vis_functionality()
-                self.currGui = self.adminVisGUI
-            elif self.UserSubtype == "Manager":
-                self.manager_vis_functionality()
-                self.currGui = self.manVisGUI
-        elif self.userType == "Employee":
-            if self.UserSubtype == "Staff":
-                self.staff_visitor_functionality()
-                self.currGui = self.staffVisGUI
-            elif self.UserSubtype == "Admin":
-                self.admin_vis_functionality()
-                self.currGui = self.adminVisGUI
-            elif self.UserSubtype == "Manager":
-                self.manager_vis_functionality()
-                self.currGui = self.manVisGUI
-        elif self.userType == "Visitor":
-            self.visitor_functionality()
-            self.currGui = self.visitorGUI
-        elif self.userType == "User":
-            self.user_functionality()
-            self.currGui = self.navGUI
+        pass
 
     def manage_user(self):
         self.currGui.withdraw()
@@ -1702,31 +1471,24 @@ class App:
         self.popup = OptionMenu(frame, self.status, *choices_type)
         self.popup.grid(row=0, column=5)
 
-        Label(frame, text="Sort By: ").grid(row=1, column=0)
-        self.sort = StringVar()
-        choices = ['Username', 'Status', 'Username Desc', 'Status Desc', 'None']
-        self.sort.set('None')
-        self.popup = OptionMenu(frame, self.sort, *choices)
-        self.popup.grid(row=1, column = 1)
+        self.filter = Button(frame, text="Filter", command=self.filter_manage_user).grid(row=1, column=0)
 
-        self.filter = Button(frame, text="Filter", command=self.filter_manage_user).grid(row=2, column=0)
-
-        self.approve = Button(frame, text="Approve", command=self.approve_user).grid(row=2, column=1)
-        self.decline = Button(frame, text='Decline', command=self.decline_user).grid(row=2, column=2)
+        self.approve = Button(frame, text="Approve", command=self.approve_user).grid(row=1, column=1)
+        self.decline = Button(frame, text='Decline', command=self.decline_user).grid(row=1, column=2)
 
         frame_tree = Frame(self.manageUserGui)
         frame_tree.grid()
 
-        self.tree = ttk.Treeview(frame_tree, columns=['Username', 'Email Count', 'User Type', 'Status'],
-                            show='headings', selectmode='browse')
+        tree = ttk.Treeview(frame_tree, columns=['Username', 'Email Count', 'User Type', 'Status'],
+                            show='headings')
 
-        self.tree.heading('Username', text='Username')
-        self.tree.heading('Email Count', text='Email Count')
-        self.tree.heading('User Type', text='User Type')
-        self.tree.heading("Status", text='Status')
-        #self.tree.insert("", "end", values=("1", "2", "3", "4"))
-        #self.tree.insert("", "end", values=("4", "5", "6", "7"))
-        self.tree.grid(row=1, column=3)
+        tree.heading('Username', text='Username')
+        tree.heading('Email Count', text='Email Count')
+        tree.heading('User Type', text='User Type')
+        tree.heading("Status", text='Status')
+        tree.insert("", "end", values=("1", "2", "3", "4"))
+        tree.insert("", "end", values=("4", "5", "6", "7"))
+        tree.grid(row=1, column=3)
 
         frame_under = Frame(self.manageUserGui)
         frame_under.grid()
@@ -1734,203 +1496,16 @@ class App:
         self.back = Button(frame_under, text="Back", command=self.back_manage_user).grid(row=0, column=0)
 
     def approve_user(self):
-        if len(self.tree.selection()) == 0:
-            messagebox.showwarning("Select User", "Please select a user to approve")
-        else:
-            select = self.tree.item(self.tree.selection())
-            query = "Update NormalUser set User_Status = 'Approved' where Username = '%s'" % (select['values'][0])
-            self.cursor.execute(query)
-            self.db.commit()
-            messagebox.showinfo("Success!!", "The User has been approved!")
-            user = select["values"][0]
-            count = select["values"][1]
-            type = select["values"][2]
-            self.tree.insert("", "end", values=(user, count, type, "Approved"))
-            self.tree.delete(self.tree.selection()[0])
+        pass
 
     def decline_user(self):
-        if len(self.tree.selection()) == 0:
-            messagebox.showwarning("Select User", "Please select a user to decline")
-        elif self.tree.item(self.tree.selection())['values'][3] == "Approved":
-            messagebox.showwarning("Select User", "You cannot decline an approved user. Please select a pending account to decline")
-        else:
-            select = self.tree.item(self.tree.selection())
-            query = "Update NormalUser set User_Status = 'Declined' where Username = '%s'" % (self.username.get())
-            self.cursor.execute(query)
-            self.db.commit()
-            messagebox.showinfo("Success!!", "The User has been declined!")
-            user = select["values"][0]
-            count = select["values"][1]
-            type = select["values"][2]
-            self.tree.insert("", "end", values=(user, count, type, "Approved"))
-            self.tree.delete(self.tree.selection()[0])
+        pass
 
     def filter_manage_user(self):
-        for i in self.tree.get_children():
-            self.tree.delete(i)
-        if self.username.get() == '' and self.type.get() == 'All' and self.status.get() == 'All':
-            query = ""
-            if self.sort.get() == "Username":
-                query = "Select username, user_status from normaluser where username != '%s' order by username" % (self.user.get())
-            elif self.sort.get() == "Status":
-                query = "Select username, user_status from normaluser where username != '%s' order by user_status" % (self.user.get())
-            elif self.sort.get() == "Username Desc":
-                query = "Select username, user_status from normaluser where username != '%s' order by username desc" % (self.user.get())
-            elif self.sort.get() == "Status Desc":
-                query = "Select username, user_status from normaluser where username != '%s' order by user_status desc" % (self.user.get())
-            else:
-                query = "Select username, user_status from normaluser where username != '%s'" % (self.user.get())
-            self.cursor.execute(query)
-            people = self.cursor.fetchall()
-            for p in people:
-                user = p[0]
-                status = p[1]
-                queryb = "Select count(*) from Email where Username = '%s'" % (user)
-                self.cursor.execute(queryb)
-                emails = self.cursor.fetchone()
-                self.tree.insert("", "end", values=(user, emails, "User", status))
-        else:
-            query = ""
-            if self.type.get() == "User" or self.type.get() == 'All':
-                query = "Select username, user_status from normaluser where " #username = usernamevar from the box AND user_status = userstatusvar"
-                user = ""
-                status = ""
-                if self.username.get() != "":
-                    user = "username = '" + self.username.get() + "'"
-                if self.status.get() != 'All':
-                    status = "user_status = '" + self.status.get() + "'"
-                if user != "":
-                    query = query + user
-                    if status != "":
-                        query = query + " and " + status
-                else:
-                    query = query + status
-                if self.sort.get() == "Username":
-                    query = query + " order by username"
-                elif self.sort.get() == "Status":
-                    query = query + " order by user_status"
-                elif self.sort.get() == "Username Desc":
-                    query = query + " order by username desc"
-                elif self.sort.get() == "Status Desc":
-                    query = query + " order by user_status desc"
-                else:
-                    query = query
-                self.cursor.execute(query)
-                result = self.cursor.fetchall()
-                for entry in result:
-                    username = entry[0]
-                    status = entry[1]
-                    type = "User"
-                    querye = "Select count(*) from Email where Username = '%s'" % (username)
-                    self.cursor.execute(querye)
-                    count = self.cursor.fetchone()
-                    self.tree.insert("", "end", values=(username, count, type, status))
-            elif self.type.get() == "Visitor":
-                query = "SELECT visitor.username,user_status from visitor join normaluser on visitor.username= normaluser.username where "
-                user = ""
-                status = ""
-                if self.username.get() != "":
-                    user = "username = '" + self.username.get() + "'"
-                if self.status.get() != 'All':
-                    status = "user_status = '" + self.status.get() + "'"
-                if user != "":
-                    query = query + user
-                    if status != "":
-                        query = query + " and " + status
-                else:
-                    query = query + status
-                if self.sort.get() == "Username":
-                    query = query + " order by visitor.username"
-                elif self.sort.get() == "Status":
-                    query = query + " order by user_status"
-                elif self.sort.get() == "Username Desc":
-                    query = query + " order by visitor.username desc"
-                elif self.sort.get() == "Status Desc":
-                    query = query + " order by user_status desc"
-                else:
-                    query = query
-                self.cursor.execute(query)
-                result = self.cursor.fetchall()
-                for entry in result:
-                    username = entry[0]
-                    status = entry[1]
-                    type = "Visitor"
-                    querye = "Select count(*) from Email where Username = '%s'" % (username)
-                    self.cursor.execute(querye)
-                    count = self.cursor.fetchone()
-                    self.tree.insert("", "end", values=(username, count, type, status))
-            else:
-                query = "SELECT employee.username,user_status from employee join normaluser on employee.username= normaluser.username where "
-                user = ""
-                status = ""
-                type = ""
-                if self.username.get() != "":
-                    user = "employee.username = '" + self.username.get() + "'"
-                if self.status.get() != 'All':
-                    status = "user_status = '" + self.status.get() + "'"
-                if self.type.get() != 'All':
-                    type = "Employee_Type = '" + self.type.get() + "'"
-                if user != "":
-                    query = query + user
-                    if status != "":
-                        query = query + " and " + status
-                    if type != "":
-                        query = query + " and " + type
-                elif status != "":
-                    query = query + status
-                    if type != "":
-                        query = query + " and " + type
-                else:
-                    query = query + type
-                if self.sort.get() == "Username":
-                    query = query + " order by employee.username"
-                elif self.sort.get() == "Status":
-                    query = query + " order by user_status"
-                elif self.sort.get() == "Username Desc":
-                    query = query + " order by employee.username desc"
-                elif self.sort.get() == "Status Desc":
-                    query = query + " order by user_status desc"
-                else:
-                    query = query
-                self.cursor.execute(query)
-                result = self.cursor.fetchall()
-                for entry in result:
-                    username = entry[0]
-                    status = entry[1]
-                    type = self.type.get()
-                    querye = "Select count(*) from Email where Username = '%s'" % (username)
-                    self.cursor.execute(querye)
-                    count = self.cursor.fetchone()
-                    self.tree.insert("", "end", values=(username, count, type, status))
+        pass
 
     def back_manage_user(self):
-        self.currGui.withdraw()
-        if self.userType == "Employee, Visitor":
-            if self.UserSubtype == "Staff":
-                self.staff_visitor_functionality()
-                self.currGui = self.staffVisGUI
-            elif self.UserSubtype == "Admin":
-                self.admin_vis_functionality()
-                self.currGui = self.adminVisGUI
-            elif self.UserSubtype == "Manager":
-                self.manager_vis_functionality()
-                self.currGui = self.manVisGUI
-        elif self.userType == "Employee":
-            if self.UserSubtype == "Staff":
-                self.staff_visitor_functionality()
-                self.currGui = self.staffVisGUI
-            elif self.UserSubtype == "Admin":
-                self.admin_vis_functionality()
-                self.currGui = self.adminVisGUI
-            elif self.UserSubtype == "Manager":
-                self.manager_vis_functionality()
-                self.currGui = self.manVisGUI
-        elif self.userType == "Visitor":
-            self.visitor_functionality()
-            self.currGui = self.visitorGUI
-        elif self.userType == "User":
-            self.user_functionality()
-            self.currGui = self.navGUI
+        pass
 
     def manage_transit(self):
         self.currGui.withdraw()
@@ -1981,18 +1556,18 @@ class App:
         frame_tree = Frame(self.manageTranGui)
         frame_tree.grid()
 
-        self.tree = ttk.Treeview(frame_tree,
+        tree = ttk.Treeview(frame_tree,
                             columns=['Route', 'Transport Type', 'Price', '# Connected Sites', '# Transit Logged'],
-                            show='headings', selectmode = 'browse')
+                            show='headings')
 
-        self.tree.heading('Route', text='Route')
-        self.tree.heading('Transport Type', text='Transport Type')
-        self.tree.heading('Price', text='Price')
-        self.tree.heading("# Connected Sites", text='# Connected Sites')
-        self.tree.heading("# Transit Logged", text='# Transit Logged')
-        #self.tree.insert("", "end", values=("1", "2", "3", "4", "5"))
-        #self.tree.insert("", "end", values=("4", "5", "6", "7", "8"))
-        self.tree.grid(row=1, column=3)
+        tree.heading('Route', text='Route')
+        tree.heading('Transport Type', text='Transport Type')
+        tree.heading('Price', text='Price')
+        tree.heading("# Connected Sites", text='# Connected Sites')
+        tree.heading("# Transit Logged", text='# Transit Logged')
+        tree.insert("", "end", values=("1", "2", "3", "4", "5"))
+        tree.insert("", "end", values=("4", "5", "6", "7", "8"))
+        tree.grid(row=1, column=3)
 
         frame_under = Frame(self.manageTranGui)
         frame_under.grid()
@@ -2003,33 +1578,7 @@ class App:
         pass
 
     def back_manage_transit(self):
-        self.currGui.withdraw()
-        if self.userType == "Employee, Visitor":
-            if self.UserSubtype == "Staff":
-                self.staff_visitor_functionality()
-                self.currGui = self.staffVisGUI
-            elif self.UserSubtype == "Admin":
-                self.admin_vis_functionality()
-                self.currGui = self.adminVisGUI
-            elif self.UserSubtype == "Manager":
-                self.manager_vis_functionality()
-                self.currGui = self.manVisGUI
-        elif self.userType == "Employee":
-            if self.UserSubtype == "Staff":
-                self.staff_visitor_functionality()
-                self.currGui = self.staffVisGUI
-            elif self.UserSubtype == "Admin":
-                self.admin_vis_functionality()
-                self.currGui = self.adminVisGUI
-            elif self.UserSubtype == "Manager":
-                self.manager_vis_functionality()
-                self.currGui = self.manVisGUI
-        elif self.userType == "Visitor":
-            self.visitor_functionality()
-            self.currGui = self.visitorGUI
-        elif self.userType == "User":
-            self.user_functionality()
-            self.currGui = self.navGUI
+        pass
 
     def create_transit(self):
         self.manageTranGui.withdraw()
@@ -2129,7 +1678,7 @@ class App:
     def manage_site(self):
         self.currGui.withdraw()
         self.manageSiteGui = Toplevel()
-        self.currGui = self.manageSiteGui
+        self.currGui = self.manage_site
         self.manageSiteGui.title("Manage Site")
 
         Label(self.manageSiteGui, text="Manage Site").grid(row=0)
@@ -2137,47 +1686,26 @@ class App:
         frame = Frame(self.manageSiteGui)
         frame.grid()
 
-        query = "Select Distinct SiteName from Site"
-        self.cursor.execute(query)
-        sites = self.cursor.fetchall()
-
         Label(frame, text="Site ").grid(row=0, column=0)
-        self.site = StringVar()
-        choices = []
-        for site in sites:
-            choices.append(site[0])
-        choices.append('All')
-        self.site.set("All")
-        self.popupMenu = OptionMenu(frame, self.site, *choices)
+        self.type = StringVar()
+        choices = ["Manager", "Staff", "All"]
+        self.type.set("All")
+        self.popupMenu = OptionMenu(frame, self.type, *choices)
         self.popupMenu.grid(row=0, column=1)
 
-        query = "select concat(firstname,' ', lastname) from manager a  join normaluser b on a.username=b.username"
-        self.cursor.execute(query)
-        managers = self.cursor.fetchall()
-
         Label(frame, text="Manager ").grid(row=0, column=2)
-        self.managers = StringVar()
-        choices = []
-        for manager in managers:
-            choices.append(manager[0])
-        choices.append('All')
-        self.managers.set('All')
-        self.popup = OptionMenu(frame, self.managers, *choices)
+        self.status = StringVar()
+        choices_type = ['Approved', 'Declined', 'Pending', 'All']
+        self.status.set('All')
+        self.popup = OptionMenu(frame, self.status, *choices_type)
         self.popup.grid(row=0, column=3)
 
         Label(frame, text="Open Everyday ").grid(row=1, column=2)
-        self.open = StringVar()
-        choices_type = ['Yes', 'No', 'All']
-        self.open.set('All')
-        self.popup = OptionMenu(frame, self.open, *choices_type)
+        self.status = StringVar()
+        choices_type = ['Yes', 'No']
+        self.status.set('Yes')
+        self.popup = OptionMenu(frame, self.status, *choices_type)
         self.popup.grid(row=1, column=3)
-
-        Label(frame, text="Sort By: ").grid(row=1, column=4)
-        self.sort = StringVar()
-        choices = ['Name', 'Manager', 'Open Everyday', 'Name Desc','Manager Desc', 'Open Everyday Desc', 'None']
-        self.sort.set('None')
-        self.popup = OptionMenu(frame, self.sort, *choices)
-        self.popup.grid(row=1, column = 5)
 
         self.filter = Button(frame, text="Filter", command=self.filter_manage_site).grid(row=2, column=0)
 
@@ -2188,15 +1716,15 @@ class App:
         frame_tree = Frame(self.manageSiteGui)
         frame_tree.grid()
 
-        self.tree = ttk.Treeview(frame_tree, columns=['Name', 'Manager', 'Open Everyday'],
-                            show='headings', selectmode='browse')
+        tree = ttk.Treeview(frame_tree, columns=['Name', 'Manager', 'Open Everyday'],
+                            show='headings')
 
-        self.tree.heading('Name', text='Name')
-        self.tree.heading('Manager', text='Manager')
-        self.tree.heading('Open Everyday', text='Open Everyday')
-        #self.tree.insert("", "end", values=("1", "2", "3"))
-        #self.tree.insert("", "end", values=("4", "5", "6"))
-        self.tree.grid(row=1, column=3)
+        tree.heading('Name', text='Name')
+        tree.heading('Manager', text='Manager')
+        tree.heading('Open Everyday', text='Open Everyday')
+        tree.insert("", "end", values=("1", "2", "3"))
+        tree.insert("", "end", values=("4", "5", "6"))
+        tree.grid(row=1, column=3)
 
         frame_under = Frame(self.manageSiteGui)
         frame_under.grid()
@@ -2204,116 +1732,13 @@ class App:
         self.back = Button(frame_under, text="Back", command=self.back_manage_site).grid(row=0, column=0)
 
     def filter_manage_site(self):
-        for i in self.tree.get_children():
-            self.tree.delete(i)
-        if self.site.get() == 'All' and self.managers.get() == 'All' and self.open.get() == 'All':
-            query = "SELECT sitename, concat(firstname,' ', lastname), openeveryday FROM Site a join normaluser b on a.managerID=b.username"
-            if self.sort.get() == "Name":
-                query = "SELECT sitename, concat(firstname,' ', lastname), openeveryday FROM Site a join normaluser b on a.managerID=b.username order by sitename"
-            elif self.sort.get() == "Manager":
-                query = "SELECT sitename, concat(firstname,' ', lastname), openeveryday FROM Site a join normaluser b on a.managerID=b.username order by concat(firstname,' ', lastname)"
-            elif self.sort.get() == "Open Everyday":
-                query = "SELECT sitename, concat(firstname,' ', lastname), openeveryday FROM Site a join normaluser b on a.managerID=b.username order by openeveryday"
-            elif self.sort.get() == "Name Desc":
-                query = "SELECT sitename, concat(firstname,' ', lastname), openeveryday FROM Site a join normaluser b on a.managerID=b.username order by sitename desc"
-            elif self.sort.get() == "Manager Desc":
-                query = "SELECT sitename, concat(firstname,' ', lastname), openeveryday FROM Site a join normaluser b on a.managerID=b.username order by concat(firstname,' ', lastname) desc"
-            elif self.sort.get() == "Open Everyday Desc":
-                query = "SELECT sitename, concat(firstname,' ', lastname), openeveryday FROM Site a join normaluser b on a.managerID=b.username order by openeveryday desc"
-            else:
-                query = "SELECT sitename, concat(firstname,' ', lastname), openeveryday FROM Site a join normaluser b on a.managerID=b.username"
-            self.cursor.execute(query)
-            sites = self.cursor.fetchall()
-            for site in sites:
-                name = site[0]
-                manager = site[1]
-                open = site[2]
-                self.tree.insert("", "end", values=(name, manager, open))
-        else:
-            query = "SELECT sitename, concat(firstname,' ', lastname), openeveryday FROM Site a join normaluser b on a.managerID=b.username where "
-            site = ""
-            manager = ""
-            open = ""
-            if self.site.get() != "All":
-                site = "SiteName = '" + self.site.get() + "'"
-            if self.managers.get() != "All":
-                manager = "concat(b.Firstname, ' ', b.LastName) = '" + self.managers.get() + "'"
-                print(manager)
-            if self.open.get() != 'All':
-                open = "openeveryday = '" + self.open.get() + "'"
-            if site != "":
-                query = query + site
-                if manager != "":
-                    query = query + " and " + manager
-                if open != "":
-                    query = query + " and " + open
-            elif manager != "":
-                query = query + manager
-                if open != "":
-                    query = query + " and " + open
-            else:
-                query = query + open
-            if self.sort.get() == "Name":
-                query = query + " order by sitename"
-            elif self.sort.get() == "Manager":
-                query = query + " order by concat(firstname,' ', lastname)"
-            elif self.sort.get() == "Open Everyday":
-                query = query + " order by openeveryday"
-            elif self.sort.get() == "Name Desc":
-                query = query + " order by sitename desc"
-            elif self.sort.get() == "Manager Desc":
-                query = query + " order by concat(firstname,' ', lastname) desc"
-            elif self.sort.get() == "Open Everyday Desc":
-                query = query + " order by openeveryday desc"
-            else:
-                query = query
-            self.cursor.execute(query)
-            results = self.cursor.fetchall()
-            for site in results:
-                name = site[0]
-                manager = site[1]
-                open = site[2]
-                self.tree.insert("", "end", values=(name, manager, open))
+        pass
 
     def delete_site(self):
-        if len(self.tree.selection()) == 0:
-            messagebox.showwarning("Select Site", "Please select a site to delete")
-        else:
-            select = self.tree.item(self.tree.selection())
-            query = "Delete from Site where SiteName = '%s'" % (select["values"][0])
-            self.cursor.execute(query)
-            self.db.commit()
-            self.tree.delete(self.tree.selection()[0])
-            messagebox.showinfo("Success!!", "The Site have been successfully deleted")
+        pass
 
     def back_manage_site(self):
-        self.currGui.withdraw()
-        if self.userType == "Employee, Visitor":
-            if self.UserSubtype == "Staff":
-                self.staff_visitor_functionality()
-                self.currGui = self.staffVisGUI
-            elif self.UserSubtype == "Admin":
-                self.admin_vis_functionality()
-                self.currGui = self.adminVisGUI
-            elif self.UserSubtype == "Manager":
-                self.manager_vis_functionality()
-                self.currGui = self.manVisGUI
-        elif self.userType == "Employee":
-            if self.UserSubtype == "Staff":
-                self.staff_visitor_functionality()
-                self.currGui = self.staffVisGUI
-            elif self.UserSubtype == "Admin":
-                self.admin_vis_functionality()
-                self.currGui = self.adminVisGUI
-            elif self.UserSubtype == "Manager":
-                self.manager_vis_functionality()
-                self.currGui = self.manVisGUI
-        elif self.userType == "Visitor":
-            self.visitor_functionality()
-            self.currGui = self.visitorGUI
-        elif self.userType == "User":
-            self.user_functionality()
-            self.currGui = self.navGUI
+        pass
 
     ###########################################################################
     def create_site(self):
@@ -2343,18 +1768,14 @@ class App:
         self.address_enter = Entry(frame, textvariable=self.address)
         self.address_enter.grid(row=1, column=1)
 
-        query = "select concat(FirstName, ' ', Lastname) as 'Manager Name' from NormalUser join manager on manager.username = NormalUser.Username where concat(FirstName, ' ', Lastname) not in(select concat(FirstName, ' ', Lastname) as 'Manager Name' from NormalUser join site on site.managerID = NormalUser.Username)"
-        self.cursor.execute(query)
-        managers_other = self.cursor.fetchall()
-
         Label(frame, text="Manager: ").grid(row=2, column=0)
         self.manager = StringVar()
-        choices = []
-        for m in managers_other:
-            choices.append(m[0])
-        self.popup = OptionMenu(frame, self.manager, *choices)
+        choices_type = ['Approved', 'Declined', 'Pending', 'All']
+        self.manager.set('All')
+        self.popup = OptionMenu(frame, self.manager, *choices_type)
         self.popup.grid(row=2, column=1)
 
+        # Label(frame, text="Open Everyday").grid(row=2, column=3)
         self.open = IntVar()
         Checkbutton(frame, text="Open Everyday", variable=self.open).grid(row=2, column=2)
 
@@ -2367,103 +1788,48 @@ class App:
         self.currGui = self.manageSiteGui
 
     def create_site_btn(self):
-        if self.fname.get() == "":
-            messagebox.showwarning("Name?", "Please enter a name for the site")
-        elif self.zip.get() == "":
-            messagebox.showwarning("Zipcode?", "Please enter a zipcode")
-        elif self.manager.get() == "":
-            messagebox.showwarning("Manager", "Please select a manager")
-        else:
-            open = ""
-            if self.open.get() == 1:
-                open = "Yes"
-            else:
-                open = "No"
-            manager_query = "select username from normaluser where concat(firstname, ' ' , lastname)= '%s'" % (self.manager.get())
-            self.cursor.execute(manager_query)
-            managerid = self.cursor.fetchone()
-            query = "Insert into Site set SiteName = '%s', Zipcode = '%s', Address = '%s', ManagerID = '%s', OpenEveryday = '%s'" % (self.fname.get(), self.zip.get(), self.address.get(), managerid[0], open)
-            self.cursor.execute(query)
-            self.db.commit()
-            messagebox.showinfo("Success!", "The site was successfully inserted!")
-            self.currGui.withdraw()
-            self.manage_site()
-
+        pass
 
     def edit_site(self):
-        if len(self.tree.selection()) == 0:
-            messagebox.showwarning("Select Site", "Please select a site to edit")
-        else:
-            select = self.tree.item(self.tree.selection())
-            name = select['values'][0]
-            manager = select['values'][1]
-            open = select['values'][2]
+        self.manageSiteGui.withdraw()
+        self.editSite = Toplevel()
+        self.prevGUI = self.currGui
+        self.currGui = self.editSite
+        self.editSite.title("Edit Site")
 
-            self.manageSiteGui.withdraw()
-            self.editSite = Toplevel()
-            self.prevGUI = self.currGui
-            self.currGui = self.editSite
-            self.editSite.title("Edit Site")
+        Label(self.editSite, text="Edit Site").grid(row=0)
 
-            Label(self.editSite, text="Edit Site").grid(row=0)
+        frame = Frame(self.editSite)
+        frame.grid()
 
-            frame = Frame(self.editSite)
-            frame.grid()
+        Label(frame, text="Name: ").grid(row=0, column=0)
+        self.fname = StringVar()
+        self.fname_enter = Entry(frame, textvariable=self.fname)
+        self.fname_enter.grid(row=0, column=1)
 
-            query = "Select address, zipcode from site where sitename= '%s'" % (name)
-            self.cursor.execute(query)
-            result = self.cursor.fetchone()
+        Label(frame, text="Zipcode: ").grid(row=0, column=2)
+        self.zip = StringVar()
+        self.zip_enter = Entry(frame, textvariable=self.zip)
+        self.zip_enter.grid(row=0, column=3)
 
-            self.name_original = name
+        Label(frame, text="Address: ").grid(row=1, column=0)
+        self.address = StringVar()
+        self.address_enter = Entry(frame, textvariable=self.address)
+        self.address_enter.grid(row=1, column=1)
 
-            Label(frame, text="Name: ").grid(row=0, column=0)
-            self.site = StringVar()
-            self.site.set(name)
-            self.site_enter = Entry(frame, textvariable=self.site)
-            self.site_enter.grid(row=0, column=1)
+        Label(frame, text="Manager: ").grid(row=2, column=0)
+        self.manager = StringVar()
+        choices_type = ['Approved', 'Declined', 'Pending', 'All']
+        self.manager.set('All')
+        self.popup = OptionMenu(frame, self.manager, *choices_type)
+        self.popup.grid(row=2, column=1)
 
-            Label(frame, text="Zipcode: ").grid(row=0, column=2)
-            self.zip = StringVar()
-            if result[1] != None:
-                self.zip.set(result[1])
-            self.zip_enter = Entry(frame, textvariable=self.zip)
-            self.zip_enter.grid(row=0, column=3)
+        # Label(frame, text="Open Everyday").grid(row=2, column=3)
+        self.open = IntVar()
+        Checkbutton(frame, text="Open Everyday", variable=self.open).grid(row=2, column=2)
 
-            Label(frame, text="Address: ").grid(row=1, column=0)
-            self.address = StringVar()
-            if result[0] != None:
-                self.address.set(result[0])
-            self.address_enter = Entry(frame, textvariable=self.address)
-            self.address_enter.grid(row=1, column=1)
-
-            query = "select concat(Firstname, ' ', LastName) as 'Manager Name' from NormalUser join site on site.managerID = NormalUser.Username where sitename = '%s'" % (name)
-            self.cursor.execute(query)
-            managers = self.cursor.fetchone()
-            manager_name = managers[0]
-
-            query = "select concat(FirstName, ' ', Lastname) as 'Manager Name' from NormalUser join manager on manager.username = NormalUser.Username where concat(FirstName, ' ', Lastname) not in(select concat(FirstName, ' ', Lastname) as 'Manager Name' from NormalUser join site on site.managerID = NormalUser.Username)"
-            self.cursor.execute(query)
-            managers_other = self.cursor.fetchall()
-
-            Label(frame, text="Manager: ").grid(row=2, column=0)
-            self.manager = StringVar()
-            choices = []
-            choices.append(manager_name)
-            for m in managers_other:
-                choices.append(m[0])
-            self.manager.set(manager_name)
-            self.popup = OptionMenu(frame, self.manager, *choices)
-            self.popup.grid(row=2, column=1)
-
-            self.open = IntVar()
-            if open == "Yes":
-                self.open.set(1)
-            else:
-                self.open.set(0)
-            Checkbutton(frame, text="Open Everyday", variable=self.open).grid(row=2, column=2)
-
-            self.registerUser = Button(frame, text="Back", command=self.edit_site_back).grid(row=4, column=1)
-            self.registerUser = Button(frame, text="Update", command=self.edit_site_btn).grid(row=4, column=2)
+        self.registerUser = Button(frame, text="Back", command=self.edit_site_back).grid(row=4, column=1)
+        self.registerUser = Button(frame, text="Update", command=self.edit_site_btn).grid(row=4, column=2)
 
     def edit_site_back(self):
         self.currGui.withdraw()
@@ -2471,28 +1837,18 @@ class App:
         self.currGui = self.manageSiteGui
 
     def edit_site_btn(self):
-        open = ""
-        if self.open.get() == 1:
-            open = "Yes"
-        else:
-            open = "No"
+        pass
 
-        print(self.site.get())
-        query_manager_id = "select username from normaluser where concat(firstname, ' ' , lastname)= '%s'" % (self.manager.get())
-        self.cursor.execute(query_manager_id)
-        id = self.cursor.fetchone()
-        query = "Update Site set SiteName = '%s', Zipcode = '%s', Address = '%s', ManagerID = '%s', OpenEveryday = '%s' where SiteName = '%s'" % (self.site.get(), self.zip.get(), self.address.get(), id[0], open, self.name_original)
-        self.cursor.execute(query)
-        self.db.commit()
-        messagebox.showinfo("Success!!", "The site has been edited")
-        self.currGui.withdraw()
-        self.manage_site()
+    def reg_hash_password(self, password):
+        normalPassword = password
+        hashedPassword = hashlib.md5(normalPassword[0].encode())
+        return hashedPassword.hexdigest()
 
     ###########################################################################
     def take_transit(self):
         self.currGui.withdraw()
         self.take_tran = Toplevel()
-        self.currGui = self.take_tran
+        self.currGui = self.take_transit
         self.take_tran.title("Take Transit")
 
         Label(self.take_tran, text="Take Transit").grid(row=0)
@@ -2500,16 +1856,9 @@ class App:
         frame = Frame(self.take_tran)
         frame.grid()
 
-        query = "Select Distinct SiteName from Site"
-        self.cursor.execute(query)
-        sites = self.cursor.fetchall()
-
         Label(frame, text="Contain Site ").grid(row=0, column=0)
         self.destination = StringVar()
-        choices = []
-        for site in sites:
-            choices.append(site[0])
-        choices.append('All')
+        choices = ["Manager", "Staff", "All"]
         self.destination.set("All")
         self.popupMenu = OptionMenu(frame, self.destination, *choices)
         self.popupMenu.grid(row=0, column=1)
@@ -2531,26 +1880,21 @@ class App:
         self.price_upper_enter = Entry(frame, textvariable=self.price_upper)
         self.price_upper_enter.grid(row=1, column=3)
 
-        Label(frame, text="Sort By: ").grid(row=1, column=4)
-        self.sort = StringVar()
-        choices = ['Transport Type', 'Price', 'Transport Type Desc', 'Price Desc', 'None']
-        self.sort.set('None')
-        self.popup = OptionMenu(frame, self.sort, *choices)
-        self.popup.grid(row=1, column = 5)
-
-        self.filter = Button(frame, text="Filter", command=self.filter_take_trans).grid(row=1, column=6)
+        self.filter = Button(frame, text="Filter", command=self.filter_take_trans).grid(row=1, column=5)
 
         frame_tree = Frame(self.take_tran)
         frame_tree.grid()
 
-        self.tree = ttk.Treeview(frame_tree, columns=['Route', 'Transport Type', 'Price', '# Connected Sites'],
-                            show='headings', selectmode='browse')
+        tree = ttk.Treeview(frame_tree, columns=['Route', 'Transport Type', 'Price', '# Connected Sites'],
+                            show='headings')
 
-        self.tree.heading('Route', text='Route')
-        self.tree.heading('Transport Type', text='Transport Type')
-        self.tree.heading('Price', text='Price')
-        self.tree.heading("# Connected Sites", text='# Connected Sites')
-        self.tree.grid(row=1, column=3)
+        tree.heading('Route', text='Route')
+        tree.heading('Transport Type', text='Transport Type')
+        tree.heading('Price', text='Price')
+        tree.heading("# Connected Sites", text='# Connected Sites')
+        tree.insert("", "end", values=("1", "2", "3", "4"))
+        tree.insert("", "end", values=("4", "5", "6", "7"))
+        tree.grid(row=1, column=3)
 
         frame_under = Frame(self.take_tran)
         frame_under.grid()
@@ -2565,153 +1909,19 @@ class App:
         self.log = Button(frame_under, text="Log Transit", command=self.log_transit).grid(row=0, column=4)
 
     ###########################################################################
-    def OnDoubleClick(self):
-        pass
-
-    def onSingleClick(self):
-        pass
-
     def filter_take_trans(self):
-        for i in self.tree.get_children():
-            self.tree.delete(i)
-        if self.destination.get() == 'All' and self.trans_type.get() == 'All' and self.price_lower.get() == 0 and self.price_upper.get() == 0:
-            query = ""
-            if self.sort.get() == "Transport Type":
-                query = "Select Transit_route, Transit_type, Price from Transit order by Transit_type"
-            elif self.sort.get() == "Price":
-                query = "Select Transit_route, Transit_type, Price from Transit order by Price"
-            elif self.sort.get() == "Transport Type Desc":
-                query = "Select Transit_route, Transit_type, Price from Transit order by Transit_type desc"
-            elif self.sort.get() == "Price Desc":
-                query = "Select Transit_route, Transit_type, Price from Transit order by Price desc"
-            else:
-                query = "Select Transit_route, Transit_type, Price from Transit"
-            self.cursor.execute(query)
-            transits = self.cursor.fetchall()
-            for transit in transits:
-                route = transit[0]
-                type = transit[1]
-                price = transit[2]
-                queryb = "Select count(sitename) from connects where transitroute = '%s'" % (route)
-                self.cursor.execute(queryb)
-                connected = self.cursor.fetchone()
-                self.tree.insert("", "end", values=(route, type, price, connected))
-        else:
-            query = "select distinct Transit_route, Transit_type, Price from transit join connects on transit.transit_route = connects.TransitRoute where "
-            site = ""
-            tran = ""
-            price = ""
-            if self.destination.get() != "All":
-                site = "SiteName = '" + self.destination.get() + "'"
-            if self.trans_type.get() != "All":
-                tran = "TransitType = '" + self.trans_type.get() + "'"
-            if self.price_upper.get() != 0 and self.price_lower.get() <= self.price_upper.get():
-                price = price + "Price between '" + str(self.price_lower.get()) + "' and '" + str(self.price_upper.get()) + "'"
-            if site != "":
-                query = query + site
-                if tran != "":
-                    query = query + " and " + tran
-                if price != "":
-                    query = query + " and " + price
-            elif tran != "":
-                query = query + tran
-                if price != "":
-                    query = query + " and " + price
-            else:
-                query = query + price
-            if self.sort.get() == "Transport Type":
-                query = query + " order by Transit_type"
-            elif self.sort.get() == "Price":
-                query = query + " order by Price"
-            elif self.sort.get() == "Transport Type Desc":
-                query = query + " order by Transit_type desc"
-            elif self.sort.get() == "Price Desc":
-                query = query + " order by Price desc"
-            else:
-                query = query
-            self.cursor.execute(query)
-            results = self.cursor.fetchall()
-            for transit in results:
-                route = transit[0]
-                type = transit[1]
-                price = transit[2]
-                queryb = "Select count(sitename) from connects where transitroute = '%s'" % (route)
-                self.cursor.execute(queryb)
-                connected = self.cursor.fetchone()
-                self.tree.insert("", "end", values=(route, type, price, connected))
+        pass
 
     ###########################################################################
     def back_take_trans(self):
-        self.currGui.withdraw()
-        if self.userType == "Employee, Visitor":
-            if self.UserSubtype == "Staff":
-                self.staff_visitor_functionality()
-                self.currGui = self.staffVisGUI
-            elif self.UserSubtype == "Admin":
-                self.admin_vis_functionality()
-                self.currGui = self.adminVisGUI
-            elif self.UserSubtype == "Manager":
-                self.manager_vis_functionality()
-                self.currGui = self.manVisGUI
-        elif self.userType == "Employee":
-            if self.UserSubtype == "Staff":
-                self.staff_visitor_functionality()
-                self.currGui = self.staffVisGUI
-            elif self.UserSubtype == "Admin":
-                self.admin_vis_functionality()
-                self.currGui = self.adminVisGUI
-            elif self.UserSubtype == "Manager":
-                self.manager_vis_functionality()
-                self.currGui = self.manVisGUI
-        elif self.userType == "Visitor":
-            self.visitor_functionality()
-            self.currGui = self.visitorGUI
-        elif self.userType == "User":
-            self.user_functionality()
-            self.currGui = self.navGUI
+        pass
 
     ###########################################################################
     def log_transit(self):
-        if self.date.get() == "":
-            messagebox.showwarning("Date", "Please enter the date to log the transit")
-        elif len(self.tree.selection()) == 0:
-            messagebox.showwarning("Select Transit", "Please select a transit to log")
-        else:
-            select = self.tree.item(self.tree.selection())
-            query = "Insert into Takes values('%s', '%s', '%s', '%s')" % (self.user.get(), select["values"][1], select["values"][0], self.date.get())
-            self.cursor.execute(query)
-            self.db.commit()
-            messagebox.showinfo("Success!!", "Your Transit has been logged")
-
+        pass
 
     def on_backbutton_clicked(self):
-        self.currGui.withdraw()
-        if self.userType == "Employee, Visitor":
-            if self.UserSubtype == "Staff":
-                self.staff_visitor_functionality()
-                self.currGui = self.staffVisGUI
-            elif self.UserSubtype == "Admin":
-                self.admin_vis_functionality()
-                self.currGui = self.adminVisGUI
-            elif self.UserSubtype == "Manager":
-                self.manager_vis_functionality()
-                self.currGui = self.manVisGUI
-        elif self.userType == "Employee":
-            if self.UserSubtype == "Staff":
-                self.staff_visitor_functionality()
-                self.currGui = self.staffVisGUI
-            elif self.UserSubtype == "Admin":
-                self.admin_vis_functionality()
-                self.currGui = self.adminVisGUI
-            elif self.UserSubtype == "Manager":
-                self.manager_vis_functionality()
-                self.currGui = self.manVisGUI
-        elif self.userType == "Visitor":
-            self.visitor_functionality()
-            self.currGui = self.visitorGUI
-        elif self.userType == "User":
-            self.user_functionality()
-            self.currGui = self.navGUI
+        self.frame()
 
     def daily_detail(self):
         self.currGui.withdraw()
@@ -2726,40 +1936,21 @@ class App:
         frame_tree = Frame(self.dailyDetailGUI)
         frame_tree.grid()
 
-        self.tree = ttk.Treeview(frame_tree, columns=['Event Name', 'Staff Names', 'Visits', 'Revenue ($)'],
-                            show='headings', selectmode='browse')
+        tree = ttk.Treeview(frame_tree, columns=['Event Name', 'Staff Names', 'Visits', 'Revenue ($)'],
+                            show='headings')
 
-        self.tree.heading('Event Name', text='Event Name')
-        self.tree.heading('Staff Names', text='Staff Names')
-        self.tree.heading('Visits', text='Visits')
-        self.tree.heading("Revenue ($)", text='Revenue ($)')
-        #self.tree.insert("", "end", values=("1", "2", "3", "4"))
-        #self.tree.insert("", "end", values=("4", "5", "6", "7"))
-        self.tree.grid(row=1, column=3)
-        self.populate_daily_detail()
+        tree.heading('Event Name', text='Event Name')
+        tree.heading('Staff Names', text='Staff Names')
+        tree.heading('Visits', text='Visits')
+        tree.heading("Revenue ($)", text='Revenue ($)')
+        tree.insert("", "end", values=("1", "2", "3", "4"))
+        tree.insert("", "end", values=("4", "5", "6", "7"))
+        tree.grid(row=1, column=3)
 
         frame_under = Frame(self.dailyDetailGUI)
         frame_under.grid()
 
         self.back = Button(frame_under, text="Back", command=self.daily_detail_back).grid(row=0, column=0)
-
-    def populate_daily_detail(self):
-        for i in self.tree.get_children():
-            self.tree.delete(i)
-
-        query = "select any_value(a.eventname) as Name , group_concat(distinct any_value(concat(firstname, \" \",lastname))) as Staff,count(dateattended) as Visits, (any_value(price)*count(dateattended)) as Revenue from visitevent a join beltlineevent b on a.eventname = b.eventname and a.sitename = b.sitename and a.eventstartdate = b.startdate join view_staffnames s on s.eventname = a.eventname group by a.dateattended, a.eventname, a.sitename;"
-        self.cursor.execute(query)
-        self.events = self.cursor.fetchall()
-        for event in self.events:
-            eventName = event[0]
-            staffNames = event[1]
-            visists = event[2]
-            revenue = event[3]
-            self.tree.insert("", "end", values=(eventName, staffNames, visists, revenue))
-
-
-
-
 
     def daily_detail_back(self):
         self.dailyDetailGUI.withdraw()
@@ -2800,64 +1991,31 @@ class App:
         self.filter = Button(frame, text="Filter", command=self.filter_view_schedule).grid(row=3, column=2)
         self.view_event = Button(frame, text="View Event", command=self.staff_event_detail).grid(row=3, column=4)
 
-
-
         frame_tree = Frame(self.view_sched_gui)
         frame_tree.grid()
 
-        self.tree = ttk.Treeview(frame_tree, columns=['Event Name', 'Site Name', 'Start Date', 'End Date', 'Staff Count'],
-                            show='headings', selectmode='browse')
+        tree = ttk.Treeview(frame_tree, columns=['Event Name', 'Site Name', 'Start Date', 'End Date', 'Staff Count'],
+                            show='headings')
 
-        self.tree.heading('Event Name', text='Event Name')
-        self.tree.heading('Site Name', text='Site Name')
-        self.tree.heading('Start Date', text='Start Date')
-        self.tree.heading('End Date', text='End Date')
-        self.tree.heading('Staff Count', text='Staff Count')
-        #self.tree.insert("", "end", values=("1", "2", "3", "4", "0"))
-        #self.tree.insert("", "end", values=("4", "5", "6", "7", "0"))
-        self.tree.grid(row=1, column=3)
-        self.tree.bind('<ButtonRelease-1>', self.selectItem)
-
-        self.selection = self.tree.item(self.tree.focus())
-        print(self.selection)
+        tree.heading('Event Name', text='Event Name')
+        tree.heading('Site Name', text='Site Name')
+        tree.heading('Start Date', text='Start Date')
+        tree.heading('End Date', text='End Date')
+        tree.heading('Staff Count', text='Staff Count')
+        tree.insert("", "end", values=("1", "2", "3", "4", "0"))
+        tree.insert("", "end", values=("4", "5", "6", "7", "0"))
+        tree.grid(row=1, column=3)
 
         frame_under = Frame(self.view_sched_gui)
         frame_under.grid()
 
         self.back = Button(frame_under, text="Back", command=self.back_view_schedule).grid(row=0, column=0)
 
-    def selectItem(self, event):
-        curItem = self.tree.item(self.tree.focus())
-        col = self.tree.identify_column(event.x)
-        curItem.values()
-        items = curItem.get("values")
-        self.eventDetailName = items[0]
-        self.siteDetailName = items[1]
-        self.startDetailDate = items[2]
-        self.endDetailDate = items[3]
-        self.staffDetailCount = items[4]
+    def filter_view_schedule(self):
+        pass
 
-        query = "Select eventname, sitename, startdate, enddate, (enddate-startdate) as duration, capacity, price, eventdesc from beltlineevent where eventname = \'" + self.eventDetailName + "\' and startdate = \'" + self.startDetailDate + "\'"
-        self.cursor.execute(query)
-
-        self.eventName = ""
-        self.siteName = ""
-        self.startDate = ""
-        self.endDate = ""
-        self.duration = ""
-        self.capacity = ""
-        self.price = ""
-        self.detailDesc = ""
-
-        for self.item in self.cursor.fetchall():
-            self.eventName = self.item[0]
-            self.siteName = self.item[1]
-            self.startDate = self.item[2]
-            self.endDate = self.item[3]
-            self.duration = self.item[4]
-            self.capacity = self.item[5]
-            self.price = self.item[6]
-            self.detailDesc = self.item[7]
+    def back_view_schedule(self):
+        pass
 
     def staff_event_detail(self):
         self.currGui.withdraw()
@@ -2871,181 +2029,48 @@ class App:
         frame.grid()
 
         Label(frame, text="Event: ").grid(row=0, column=0)
-        self.eventName = self.eventDetailName
-        Label(frame, text=self.eventName).grid(row=0, column=1)
+        self.eventName = "Temp Name"
+        Label(frame, text = self.eventName).grid(row=0, column=1)
 
         Label(frame, text="Site: ").grid(row=0, column=2)
-        self.siteName = self.siteDetailName
-        Label(frame, text=self.siteName).grid(row=0, column=3)
+        self.siteName = "Temp Site Name"
+        Label(frame, text = self.siteName).grid(row=0, column=3)
 
         Label(frame, text="Start Date: ").grid(row=1, column=0)
-        self.startDate = self.startDetailDate
-        Label(frame, text=self.startDate).grid(row=1, column=1)
+        self.startDate = "Temp Start Date"
+        Label(frame, text = self.startDate).grid(row=1, column=1)
 
         Label(frame, text="End Date: ").grid(row=1, column=2)
-        self.endDate = self.endDetailDate
-        Label(frame, text=self.endDate).grid(row=1, column=3)
+        self.endDate = "Temp End Date"
+        Label(frame, text = self.endDate).grid(row=1, column=3)
 
         Label(frame, text="Duration Days: ").grid(row=1, column=4)
-        start = [x.strip() for x in self.startDetailDate.split('-')]
-        end = [x.strip() for x in self.endDetailDate.split('-')]
-        startd = datetime.datetime(int(start[0], 10), int(start[1], 10), int(start[2], 10))
-        endd = datetime.datetime(int(end[0], 10), int(end[1], 10), int(end[2], 10))
-        duration = endd - startd
-        self.durationDays = duration.__str__()
-        Label(frame, text=self.durationDays).grid(row=1, column=5)
-
-        self.staffsAssigned = ""
-        query = "Select concat(FirstName,\" \", Lastname) as Name from NormalUser join staffassigned where NormalUser.Username=staffassigned.employee_id and EventName = \'" + self.eventDetailName +"\' and EventStartDate = \'" + self.startDetailDate + "\'"
-        self.cursor.execute(query)
-        staffList = self.cursor.fetchall()
-        for staff in staffList:
-            self.staffsAssigned = self.staffsAssigned + staff[0] + ", "
+        self.durationDays = "Temp Duration Days"
+        Label(frame, text = self.durationDays).grid(row=1, column=5)
 
         Label(frame, text="Staffs Assigned: ").grid(row=2, column=0)
-        Label(frame, text=self.staffsAssigned).grid(row=2, column=1)
+        self.staffsAssigned = "Temp Staff Assigned"
+        Label(frame, text = self.staffsAssigned).grid(row=2, column=1)
 
         Label(frame, text="Capacity: ").grid(row=2, column=2)
-        self.capacity = self.capacity
-        Label(frame, text=self.capacity).grid(row=2, column=3)
+        self.capacity = "Temp Capacity"
+        Label(frame, text = self.capacity).grid(row=2, column=3)
 
         Label(frame, text="Price:  ").grid(row=2, column=4)
-        self.price = self.price
-        Label(frame, text=self.price).grid(row=2, column=5)
-
+        self.price = "Temp Price"
+        Label(frame, text = self.price).grid(row=2, column=5)
 
         Label(frame, text="Description:  ").grid(row=3, column=0)
         self.description = StringVar()
-        self.desc = Text(frame, height=7)
+        self.desc = Text(frame,height=7)
         self.scroll = Scrollbar(frame, orient='vertical')
-        self.desc.grid(row=3, column=1, pady=4)
-        frame.columnconfigure(1, weight=1)
-        self.desc.insert(END, self.detailDesc)
+        self.desc.grid(row=3,column=1,pady=4)
+        frame.columnconfigure(1,weight=1)
+        self.desc.insert(END,'description goes here')
         self.scroll.config(command=self.desc.yview)
         self.desc.config(yscrollcommand=self.scroll.set)
 
         self.registerUser = Button(frame, text="Back", command=self.event_detail_back).grid(row=6, column=1)
-
-
-
-    #TODO Get Staff Count (defaulting to 1)
-    def filter_view_schedule(self):
-        for i in self.tree.get_children():
-            self.tree.delete(i)
-        '''
-        # Every thing is Blank
-        if self.event_name == "" and self.desc_key == "" and self.start_date == "" and self.end_date == "":
-            query = "Select a.eventname, a.sitename, a.startdate,a.enddate from beltlineevent a"
-            self.cursor.execute(query)
-            self.sched = self.cursor.fetchall()
-            for sched in self.sched:
-                eventName = sched[0]
-                siteName = sched[1]
-                startDate = sched[2]
-                endDate = sched[3]
-                self.tree.insert("", "end", values = (eventName, siteName, startDate, endDate, "1"))
-
-        '''
-
-        eventName = self.event_name.get()
-        descKeyWord = self.desc_key.get()
-        startDate = self.start_date.get()
-        endDate = self.end_date.get()
-        query = "Select a.eventname, a.sitename, a.startdate, a.enddate from beltlineevent a"
-
-        #Eventname is Not Empty and Another
-        if eventName != "" and descKeyWord != "" and startDate == "" and endDate == "":
-            query = query + " where eventname = \'" + eventName + "\' and eventdesc LIKE \'%" + descKeyWord + "%\'"
-        elif eventName != "" and startDate != "" and descKeyWord == "" and endDate == "":
-            query = query + " where eventname = \'" + eventName + "\' and startdate > \'" + startDate + "\'"
-        elif eventName != "" and endDate != "" and descKeyWord == "" and startDate == "":
-            query = query + " where eventname = \'" + eventName + "\' and enddate < \'" + endDate + "\'"
-
-        #Eventname, Desc Not Empty
-        elif eventName != "" and descKeyWord != "" and startDate != "" and endDate == "":
-            query = query + " where eventname = \'" + eventName + "' and eventdesc LIKE \'%" + descKeyWord + "%\'" + " and startdate > \'" + startDate + "\'"
-        elif eventName != "" and descKeyWord != "" and endDate != "" and startDate == "":
-            query = query + " where eventname = \'" + eventName + "\' and eventdesc LIKE \'%" + descKeyWord + "%\'" + " and enddate < \'" + endDate + "\'"
-
-        #Eventname, StartDate Not Empty
-        elif descKeyWord != "" and startDate != "" and eventName == "" and endDate == "":
-            query = query + " where eventdesc LIKE \'%" + descKeyWord + "%\'" + " and startdate > \'" + startDate + "\'"
-        elif descKeyWord != "" and endDate != "" and eventName == "" and startDate == "":
-            query = query + " where eventdesc LIKE \'%" + descKeyWord + "%\'" + " and enddate < \'" + endDate + "\'"
-
-        elif startDate != "" and endDate != "" and eventName == "" and descKeyWord == "":
-            query = query + " where startdate > \'" + startDate + "\'" + " and enddate < \'" + endDate + "\'"
-
-        elif eventName != "" and startDate != "" and endDate != "" and descKeyWord == "":
-            query = query + " where eventname = \'" + eventName + "\' and startdate > \'" + descKeyWord + "\'" + " and enddate < \'" + endDate + "\'"
-
-        elif eventName == "" and descKeyWord == "" and startDate == "" and endDate == "":
-            pass
-        elif eventName != "":
-            query = query + " where a.eventname = \'" + eventName + "\'"
-        elif descKeyWord != "":
-            query = query + " where a.eventdesc LIKE \'%" + descKeyWord + "%\'"
-        elif startDate != "":
-            query = query + " where a.startdate > \'" + startDate + "\'"
-        elif endDate != "":
-            query = query + " where a.enddate < \'" + endDate + "\'"
-
-
-        self.cursor.execute(query)
-        startd = None
-        endd = None
-        greater = False
-        self.sched = self.cursor.fetchall()
-        for sched in self.sched:
-            eventName = sched[0]
-            siteName = sched[1]
-            startDate = sched[2]
-            endDate = sched[3]
-
-            if self.start_date.get() != "" and self.end_date.get() != "":  # and self.start_date.get() <= self.end_date.get():
-                start = [x.strip() for x in self.start_date.get().split('-')]
-                end = [x.strip() for x in self.end_date.get().split('-')]
-                startd = datetime.datetime(int(start[0], 10), int(start[1], 10), int(start[2], 10))
-                endd = datetime.datetime(int(end[0], 10), int(end[1], 10), int(end[2], 10))
-            if startd != None and endd != None:
-                if startd > endd:
-                    greater = True
-            if greater == True:
-                messagebox.showwarning("Date", "The start date must be before the end date")
-            else:
-                self.tree.insert("", "end", values=(eventName, siteName, startDate, endDate, 1))
-
-
-    def back_view_schedule(self):
-        self.currGui.withdraw()
-        if self.userType == "Employee, Visitor":
-            if self.UserSubtype == "Staff":
-                self.staff_visitor_functionality()
-                self.currGui = self.staffVisGUI
-            elif self.UserSubtype == "Admin":
-                self.admin_vis_functionality()
-                self.currGui = self.adminVisGUI
-            elif self.UserSubtype == "Manager":
-                self.manager_vis_functionality()
-                self.currGui = self.manVisGUI
-        elif self.userType == "Employee":
-            if self.UserSubtype == "Staff":
-                self.staff_only_functionality()
-                self.currGui = self.staffOnlyGUI
-            elif self.UserSubtype == "Admin":
-                self.admin_vis_functionality()
-                self.currGui = self.adminVisGUI
-            elif self.UserSubtype == "Manager":
-                self.manager_vis_functionality()
-                self.currGui = self.manVisGUI
-        elif self.userType == "Visitor":
-            self.visitor_functionality()
-            self.currGui = self.visitorGUI
-        elif self.userType == "User":
-            self.user_functionality()
-            self.currGui = self.navGUI
-
-
 
     def event_detail_back(self):
         self.currGui.withdraw()
@@ -3079,13 +2104,6 @@ class App:
         self.site_name.set("-- ALL --")
         self.popupMenu = OptionMenu(frame, self.site_name, *choices)
         self.popupMenu.grid(row=1, column=1)
-
-        Label(frame, text="Sort By: ").grid(row=1, column=2)
-        self.sort = StringVar()
-        choices = ['Event Name', 'Site Name', 'Ticket Price', 'Ticket Remaining', 'Total Visits', 'My Visits']
-        self.sort.set('None')
-        self.popup = OptionMenu(frame, self.sort, *choices)
-        self.popup.grid(row=1, column=3)
 
         Label(frame, text="Start Date: ").grid(row=2, column=0)
         self.start_date_explore = StringVar()
@@ -3129,162 +2147,30 @@ class App:
         frame_tree = Frame(self.visit_explore_event)
         frame_tree.grid()
 
-        self.tree = ttk.Treeview(frame_tree, columns=['Event Name', 'Site Name', 'Ticket Price', 'Tickets Remaining',
+        tree = ttk.Treeview(frame_tree, columns=['Event Name', 'Site Name', 'Ticket Price', 'Tickets Remaining',
                                                  'Total Visits', 'My Visits'],
-                            show='headings', selectmode='browse')
+                            show='headings')
 
-        self.tree.heading('Event Name', text='Event Name')
-        self.tree.heading('Site Name', text='Site Name')
-        self.tree.heading('Ticket Price', text='Ticket Price')
-        self.tree.heading('Tickets Remaining', text='Tickets Remaining')
-        self.tree.heading('Total Visits', text='Total Visits')
-        self.tree.heading('My Visits', text='My Visits')
-        #self.tree.insert("", "end", values=("1", "2", "3", "4", "0", "0"))
-        #self.tree.insert("", "end", values=("4", "5", "6", "7", "0", "0"))
-        self.tree.grid(row=4, column=3)
-        self.tree.bind('<ButtonRelease-1>', self.visit_explore_event_selection)
-
-        self.selection = self.tree.item(self.tree.focus())
-        print(self.selection)
+        tree.heading('Event Name', text='Event Name')
+        tree.heading('Site Name', text='Site Name')
+        tree.heading('Ticket Price', text='Ticket Price')
+        tree.heading('Tickets Remaining', text='Tickets Remaining')
+        tree.heading('Total Visits', text='Total Visits')
+        tree.heading('My Visits', text='My Visits')
+        tree.insert("", "end", values=("1", "2", "3", "4", "0", "0"))
+        tree.insert("", "end", values=("4", "5", "6", "7", "0", "0"))
+        tree.grid(row=4, column=3)
 
         frame_under = Frame(self.visit_explore_event)
         frame_under.grid()
 
         self.registerUser = Button(frame_under, text="Back", command=self.back_explore_event).grid(row=6, column=3)
 
-
-
-
-    #TODO Fix this. Tbh i dont know wtf is going on here
     def filter_explore_event(self):
-        for i in self.tree.get_children():
-            self.tree.delete(i)
-
-        queryOne = "select b.eventname, b.sitename, b.price, b.startdate from beltlineevent b"
-        queryTotalVisits = "select eventname, count(dateattended) from visitevent group by eventname, sitename, eventstartdate"
-        queryTixRemain = "Select event, (capacity-visits) as tickets_remaining from tickets_remaining"
-        #queryMyVisits = "select eventname, username, count(dateattended) from visitevent group by username, eventname, sitename where username = \'" + self.username.get() + "\'"
-
-        self.cursor.execute(queryOne)
-        #self.cursor.execute(queryTotalVisits)
-        #self.cursor.execute(queryTixRemain)
-
-        for i in self.tree.get_children():
-            self.tree.delete(i)
-        if self.name.get() == ''and self.desc.get() == "" and self.site_name.get() == "-- ALL --" and self.start_date_explore.get() == "" and self.end_date_explore.get() == "": #and self.visits_count_lower.get() == ""# and self.visits_count_upper.get() == "" and self.ticket_price_lower.get() == "" and self.ticket_price_upper.get() == "":
-            query = "select b.eventname, b.sitename, b.price, b.startdate from beltlineevent b"
-            if self.sort.get() == "Event Name":
-                query = "select b.eventname, b.sitename, b.price, b.startdate from beltlineevent b order by eventname"
-                queryTotalVisits = "select eventname, count(dateattended) from visitevent group by eventname, sitename, eventstartdate order by eventname"
-                queryTixRemain = "Select event, (capacity-visits) as tickets_remaining from tickets_remaining order by eventname"
-                queryMyVisits = "select eventname, username, count(dateattended) from visitevent group by username, eventname, sitename where username = \'" + self.username.get() + "\' order by eventname"
-            elif self.sort.get() == "Site Name":
-                query = "select b.eventname, b.sitename, b.price from beltlineevent b order by sitename"
-                queryTotalVisits = "select eventname, count(dateattended) from visitevent group by eventname, sitename, eventstartdate order by sitename"
-                queryTixRemain = "Select event, (capacity-visits) as tickets_remaining from tickets_remaining order by sitename"
-            elif self.sort.get() == "Ticket Price":
-                query = "select b.eventname, b.sitename, b.price from beltlineevent b order by price"
-                queryTotalVisits = "select eventname, count(dateattended) from visitevent group by eventname, sitename, eventstartdate order by price"
-                queryTixRemain = "Select event, (capacity-visits) as tickets_remaining from tickets_remaining order by price"
-            self.cursor.execute(query)
-            events = self.cursor.fetchall()
-            self.cursor.execute(queryTotalVisits)
-            totalVisits = self.cursor.fetchall()
-            self.cursor.execute(queryTixRemain)
-            tixRemain = self.cursor.fetchall()
-            #self.cursor.execute(queryMyVisits)
-            #myVis = self.cursor.fetchall()
-            cnt = 0
-            for event in events:
-                eventName = event[0]
-                siteName = event[1]
-                tixPrice = event[2]
-                self.exploreStartDate = event[3]
-                #totalVisitsVar = totalVisits[cnt]
-                #tixRemaining = tixRemain[cnt]
-                #myVis[cnt]
-                self.tree.insert("", "end", values=(eventName, siteName, tixPrice, self.exploreStartDate, "1", "1"))
-                cnt = cnt + 1
-        else:
-            query =""
-            site = ""
-            trans = ""
-            route = ""
-            date = ""
-            startd = None
-            endd = None
-            greater = False
-            if self.start_date.get() != "" and self.end_date.get() != "":  # and self.start_date.get() <= self.end_date.get():
-                start = [x.strip() for x in self.start_date.get().split('-')]
-                end = [x.strip() for x in self.end_date.get().split('-')]
-                startd = datetime.datetime(int(start[0], 10), int(start[1], 10), int(start[2], 10))
-                endd = datetime.datetime(int(end[0], 10), int(end[1], 10), int(end[2], 10))
-            if startd != None and endd != None:
-                if startd > endd:
-                    greater = True
-            if greater == True:
-                messagebox.showwarning("Date", "The start date must be before the end date")
-            elif self.start_date.get() == "" and self.end_date.get() != "":
-                messagebox.showwarning("Date", "There must be a start and end date. They can be the same date")
-            elif self.start_date.get() != "" and self.end_date.get() == "":
-                messagebox.showwarning("Date", "There must be a start and end date. They can be the same date")
-            else:
-                pass
+        pass
 
     def back_explore_event(self):
-        self.currGui.withdraw()
-        if self.userType == "Employee, Visitor":
-            if self.UserSubtype == "Staff":
-                self.staff_visitor_functionality()
-                self.currGui = self.staffVisGUI
-            elif self.UserSubtype == "Admin":
-                self.admin_vis_functionality()
-                self.currGui = self.adminVisGUI
-            elif self.UserSubtype == "Manager":
-                self.manager_vis_functionality()
-                self.currGui = self.manVisGUI
-        elif self.userType == "Employee":
-            if self.UserSubtype == "Staff":
-                self.staff_visitor_functionality()
-                self.currGui = self.staffVisGUI
-            elif self.UserSubtype == "Admin":
-                self.admin_vis_functionality()
-                self.currGui = self.adminVisGUI
-            elif self.UserSubtype == "Manager":
-                self.manager_vis_functionality()
-                self.currGui = self.manVisGUI
-        elif self.userType == "Visitor":
-            self.visitor_functionality()
-            self.currGui = self.visitorGUI
-        elif self.userType == "User":
-            self.user_functionality()
-            self.currGui = self.navGUI
-
-    def visit_explore_event_selection(self, event):
-        curItem = self.tree.item(self.tree.focus())
-        col = self.tree.identify_column(event.x)
-        curItem.values()
-        items = curItem.get("values")
-        self.exploreEventName = items[0]
-        self.exploreStartDate = items[2]
-
-        query = "select b.eventname, b.sitename, b.startdate, b.enddate ,b.price, b.eventdesc from beltlineevent b where eventname = \'" + self.exploreEventName + "\' and startdate = \'" + self.exploreStartDate + "\'"
-        self.cursor.execute(query)
-
-        self.exploreEventName = ""
-        self.exploreEventSiteName = ""
-        self.exploreEventStartDate = ""
-        self.exploreEventEndDate = ""
-        self.exploreEventPrice = ""
-        self.exploreEventDesc = ""
-
-        for self.item in self.cursor.fetchall():
-            self.exploreEventName = self.item[0]
-            self.exploreEventSiteName = self.item[1]
-            self.exploreEventStartDate = self.item[2]
-            self.exploreEventEndDate = self.item[3]
-            self.exploreEventPrice = self.item[4]
-            self.exploreEventDesc = self.item[5]
+        pass
 
     def visitor_event_detail(self):
         self.currGui.withdraw()
@@ -3298,15 +2184,15 @@ class App:
         frame.grid()
 
         Label(frame, text="Event: ").grid(row=0, column=0)
-        self.eventName = self.exploreEventName
-        Label(frame, text = self.exploreEventName).grid(row=0, column=1)
+        self.eventName = "Temp Event Name"
+        Label(frame, text = self.eventName).grid(row=0, column=1)
 
         Label(frame, text="Site: ").grid(row=0, column=2)
         self.site = "Temp Site"
         Label(frame, text = self.site).grid(row=0, column=3)
 
         Label(frame, text="Start Date: ").grid(row=1, column=0)
-        self.startDate = self.exploreEventStartDate
+        self.startDate = "Temp Start Date"
         Label(frame, text = self.startDate).grid(row=1, column=1)
 
         Label(frame, text="End Date: ").grid(row=1, column=2)
@@ -3329,7 +2215,7 @@ class App:
         self.scroll = Scrollbar(frame, orient='vertical')
         self.desc.grid(row=3,column=1,pady=4)
         frame.columnconfigure(1,weight=1)
-        self.desc.insert(END, self.eventDesc)
+        self.desc.insert(END,'description goes here')
         self.scroll.config(command=self.desc.yview)
         self.desc.config(yscrollcommand=self.scroll.set)
 
@@ -3340,8 +2226,6 @@ class App:
 
         self.registerUser = Button(frame, text="Log Visit", command=self.event_detail_log_visit).grid(row=6, column=1)
         self.registerUser = Button(frame, text="Back", command=self.visitor_event_detail_back).grid(row=6, column=2)
-
-
 
     def event_detail_log_visit(self):
         pass
@@ -3415,16 +2299,16 @@ class App:
         frame_tree = Frame(self.explore_site)
         frame_tree.grid()
 
-        self.tree = ttk.Treeview(frame_tree, columns=['Site Name', 'Event Count', 'Total Visits', 'My Visits'],
-                            show='headings', selectmode='browse')
+        tree = ttk.Treeview(frame_tree, columns=['Site Name', 'Event Count', 'Total Visits', 'My Visits'],
+                            show='headings')
 
-        self.tree.heading('Site Name', text='Site Name')
-        self.tree.heading('Event Count', text='Event Count')
-        self.tree.heading('Total Visits', text = 'Total Visits')
-        self.tree.heading('My Visits', text = 'My Visits')
-        #self.tree.insert("", "end", values=("1", "2", "0", "0"))
-        #self.tree.insert("", "end", values=("4", "5", "0", "0"))
-        self.tree.grid(row=1, column=3)
+        tree.heading('Site Name', text='Site Name')
+        tree.heading('Event Count', text='Event Count')
+        tree.heading('Total Visits', text = 'Total Visits')
+        tree.heading('My Visits', text = 'My Visits')
+        tree.insert("", "end", values=("1", "2", "0", "0"))
+        tree.insert("", "end", values=("4", "5", "0", "0"))
+        tree.grid(row=1, column=3)
 
         frame_under = Frame(self.explore_site)
         frame_under.grid()
@@ -3435,21 +2319,7 @@ class App:
         pass
 
     def back_explore_site(self):
-        self.currGui.withdraw()
-        if self.userType == "Employee, Visitor":
-            if self.UserSubtype == "Staff":
-                self.staff_visitor_functionality()
-                self.currGui = self.staffVisGUI
-            elif self.UserSubtype == "Admin":
-                self.admin_vis_functionality()
-                self.currGui = self.adminVisGUI
-            elif self.UserSubtype == "Manager":
-                self.manager_vis_functionality()
-                self.currGui = self.manVisGUI
-        elif self.userType == "Visitor":
-            self.visitor_functionality()
-            self.currGui = self.visitorGUI
-
+        pass
 
     def transit_detail(self):
         self.currGui.withdraw()
@@ -3476,17 +2346,17 @@ class App:
         frame_tree = Frame(self.trans_detail)
         frame_tree.grid()
 
-        self.tree = ttk.Treeview(frame_tree,
+        tree = ttk.Treeview(frame_tree,
                             columns=['Route', 'Transport Type', 'Price', '# Connected Sites'],
-                            show='headings', selectmode='browse')
+                            show='headings')
 
-        self.tree.heading('Route', text='Route')
-        self.tree.heading('Transport Type', text='Transport Type')
-        self.tree.heading('Price', text='Price')
-        self.tree.heading("# Connected Sites", text='# Connected Sites')
-        #self.tree.insert("", "end", values=("1", "2", "3", "4"))
-        #self.tree.insert("", "end", values=("4", "5", "6", "7"))
-        self.tree.grid(row=1, column=3)
+        tree.heading('Route', text='Route')
+        tree.heading('Transport Type', text='Transport Type')
+        tree.heading('Price', text='Price')
+        tree.heading("# Connected Sites", text='# Connected Sites')
+        tree.insert("", "end", values=("1", "2", "3", "4"))
+        tree.insert("", "end", values=("4", "5", "6", "7"))
+        tree.grid(row=1, column=3)
 
         frame_under = Frame(self.trans_detail)
         frame_under.grid()
@@ -3582,16 +2452,16 @@ class App:
         frame_tree = Frame(self.visit_history_gui)
         frame_tree.grid()
 
-        self.tree = ttk.Treeview(frame_tree, columns=['Date', 'Event Name', 'Site', 'Price'],
-                            show='headings', selectmode='browse')
+        tree = ttk.Treeview(frame_tree, columns=['Date', 'Event Name', 'Site', 'Price'],
+                            show='headings')
 
-        self.tree.heading('Date', text='Date')
-        self.tree.heading('Event Name', text='Event Name')
-        self.tree.heading('Site', text='Site')
-        self.tree.heading('Price', text='Price')
-        #self.tree.insert("", "end", values=("1", "2", "3", "4"))
-        #self.tree.insert("", "end", values=("4", "5", "6", "7"))
-        self.tree.grid(row=1, column=3)
+        tree.heading('Date', text='Date')
+        tree.heading('Event Name', text='Event Name')
+        tree.heading('Site', text='Site')
+        tree.heading('Price', text='Price')
+        tree.insert("", "end", values=("1", "2", "3", "4"))
+        tree.insert("", "end", values=("4", "5", "6", "7"))
+        tree.grid(row=1, column=3)
 
         frame_under = Frame(self.visit_history_gui)
         frame_under.grid()
@@ -3602,33 +2472,7 @@ class App:
         pass
 
     def back_visit_history(self):
-        self.currGui.withdraw()
-        if self.userType == "Employee, Visitor":
-            if self.UserSubtype == "Staff":
-                self.staff_visitor_functionality()
-                self.currGui = self.staffVisGUI
-            elif self.UserSubtype == "Admin":
-                self.admin_vis_functionality()
-                self.currGui = self.adminVisGUI
-            elif self.UserSubtype == "Manager":
-                self.manager_vis_functionality()
-                self.currGui = self.manVisGUI
-        elif self.userType == "Employee":
-            if self.UserSubtype == "Staff":
-                self.staff_visitor_functionality()
-                self.currGui = self.staffVisGUI
-            elif self.UserSubtype == "Admin":
-                self.admin_vis_functionality()
-                self.currGui = self.adminVisGUI
-            elif self.UserSubtype == "Manager":
-                self.manager_vis_functionality()
-                self.currGui = self.manVisGUI
-        elif self.userType == "Visitor":
-            self.visitor_functionality()
-            self.currGui = self.visitorGUI
-        elif self.userType == "User":
-            self.user_functionality()
-            self.currGui = self.navGUI
+        pass
 
 
 
