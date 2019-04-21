@@ -892,6 +892,13 @@ class App:
         self.revenue_upper_enter = Entry(frame, textvariable=self.revenue_upper)
         self.revenue_upper_enter.grid(row=2, column=7)
 
+        Label(frame, text="Sort By: ").grid(row=2, column=8)
+        self.sort = StringVar()
+        choices = ['Date Attended', 'Event Count', 'Date Attended Desc', 'Event Count Desc', 'None']
+        self.sort.set('None')
+        self.popup = OptionMenu(frame, self.sort, *choices)
+        self.popup.grid(row=2, column = 9)
+
         self.filter = Button(frame, text="Filter", command=self.filter_view_site).grid(row=4, column=3)
         self.create = Button(frame, text="Daily Detail", command=self.daily_detail).grid(row=4, column=4)
 
@@ -946,7 +953,118 @@ class App:
             self.currGui = self.navGUI
 
     def filter_view_site(self):
-        pass
+        for i in self.tree.get_children():
+            self.tree.delete(i)
+        startd = None
+        endd = None
+        greater = False
+        if self.start_date.get() != "" and self.end_date.get() != "":
+            start = [x.strip() for x in self.start_date.get().split('-')]
+            end = [x.strip() for x in self.end_date.get().split('-')]
+            startd = datetime.datetime(int(start[0], 10), int(start[1], 10), int(start[2], 10))
+            endd = datetime.datetime(int(end[0], 10), int(end[1], 10), int(end[2], 10))
+        if startd != None and endd != None:
+            if startd > endd:
+                greater = True
+        if greater == True:
+            messagebox.showwarning("Date", "The start date must be before the end date")
+        elif self.start_date.get() == "" and self.end_date.get() != "":
+            messagebox.showwarning("Date", "There must be a start and end date. They can be the same date")
+        elif self.start_date.get() != "" and self.end_date.get() == "":
+            messagebox.showwarning("Date", "There must be a start and end date. They can be the same date")
+        else:
+            if self.site.get() == 'All' and self.fname.get() == '' and self.lname.get() == "" and self.start_date.get() != "" and self.end_date.get() != "":
+                #startdate, event count (is start date correct here??)
+                query = ""
+                #staff count
+                query1 = ""
+                #total visits
+                query2 = "Select dateattended, count(dateattended) from VisitEvent group by dateattended"
+                #revenue
+                query3 = "Select (any_value(price)*count(dateattended)) from visitevent join beltlineevent group by dateattended"
+                if self.sort.get() == "Date":
+                    query = "select startdate, sitename as name, count(eventname) as 'Event Count' from BeltLineEvent group by sitename, startdate order by startdate"
+                elif self.sort.get() == "Event Count":
+                    query = "select startdate, sitename as name, count(eventname) as 'Event Count' from BeltLineEvent group by sitename, startdate order by count(eventname)"
+                elif self.sort.get() == "Date Desc":
+                    query = "select startdate, sitename as name, count(eventname) as 'Event Count' from BeltLineEvent group by sitename, startdate order by startdate desc"
+                elif self.sort.get() == "Event Count Desc":
+                    query = "select startdate, sitename as name, count(eventname) as 'Event Count' from BeltLineEvent group by sitename, startdate order by count(eventname) desc"
+                else:
+                    query = "select startdate, sitename as name, count(eventname) as 'Event Count' from BeltLineEvent group by sitename, startdate order by startdate"
+                '''self.cursor.execute(query)
+                staff_names = self.cursor.fetchall()
+                for staff in staff_names:
+                    name = staff[0]
+                    username = staff[1]
+                    shift_count = 0
+                    if username in shift:
+                        shift_count = shift[username]
+                    self.tree.insert("", "end", values=(name, shift_count))'''
+            '''else:
+                query = "select distinct(concat(c.FirstName, ' ', c.Lastname)),MATH from staffassigned a join BeltLineEvent b join normaluser c on a.EventName = b.EventName and a.EventStartDate=b.StartDate and a.Sitename = b.sitename and a.employee_ID = c.username where "
+                site = ""
+                first = ""
+                last = ""
+                date = ""
+                startd = None
+                endd = None
+                greater = False
+                if self.start_date.get() != "" and self.end_date.get() != "": #and self.start_date.get() <= self.end_date.get():
+                    start = [x.strip() for x in self.start_date.get().split('-')]
+                    end = [x.strip() for x in self.end_date.get().split('-')]
+                    startd = datetime.datetime(int(start[0], 10), int(start[1], 10), int(start[2], 10))
+                    endd = datetime.datetime(int(end[0], 10), int(end[1], 10), int(end[2], 10))
+                if startd != None and endd != None:
+                    if startd > endd:
+                        greater = True
+                if greater == True:
+                    messagebox.showwarning("Date", "The start date must be before the end date")
+                elif self.start_date.get() == "" and self.end_date.get() != "":
+                    messagebox.showwarning("Date", "There must be a start and end date. They can be the same date")
+                elif self.start_date.get() != "" and self.end_date.get() == "":
+                    messagebox.showwarning("Date", "There must be a start and end date. They can be the same date")
+                else:
+                    if self.site.get() != "All":
+                        site = "b.SiteName = '" + self.site.get() + "'"
+                    if self.fname.get() != "":
+                        first = "c.firstname = '" + self.fname.get() + "'"
+                    if self.lname.get() != "":
+                        last = "c.lastname '" + self.lname.get() + "'"
+                    if self.start_date.get() != "" and self.end_date.get() != "":
+                        date = "b.startdate = '" + self.start_date.get() + "'" + " and '" + "b.enddate = '" + self.end_date.get() + "'"
+                    if site != "":
+                        query = query + site
+                        if first != "":
+                            query = query + " and " + first
+                        if last != "":
+                            query = query + " and " + last
+                        if date != "":
+                            query = query + " and " + date
+                    elif first != "":
+                        query = query + first
+                        if last != "":
+                            query = query + " and " + last
+                        if date != "":
+                            query = query + " and " + date
+                    elif last != "":
+                        query = query + last
+                        if date != "":
+                            query = query + " and " + date
+                    else:
+                        query = query + date
+                    if self.sort.get() == "Name":
+                        query = query + " order by Transit_type"
+                    elif self.sort.get() == "Name Desc":
+                        query = query + " order by Price"
+                    else:
+                        query = query
+                    self.cursor.execute(query)
+                    results = self.cursor.fetchall()
+                    for staff in results:
+                        name = staff[0]
+                        shifts = staff[1]
+                        self.tree.insert("", "end", values=(name, shifts))'''
 
     def view_staff(self):
         self.currGui.withdraw()
@@ -959,11 +1077,18 @@ class App:
         frame = Frame(self.view_staff)
         frame.grid()
 
+        query = "Select Distinct SiteName from Site"
+        self.cursor.execute(query)
+        sites = self.cursor.fetchall()
+
         Label(frame, text="Site").grid(row=0, column=0)
         self.site = StringVar()
-        choices_type = ['MARTA', 'Bus', 'Bike', 'All']
+        choices = []
+        for site in sites:
+            choices.append(site[0])
+        choices.append('All')
         self.site.set('All')
-        self.popup = OptionMenu(frame, self.site, *choices_type)
+        self.popup = OptionMenu(frame, self.site, *choices)
         self.popup.grid(row=0, column=1)
 
         Label(frame, text="First Name").grid(row=1, column=0)
@@ -986,7 +1111,14 @@ class App:
         self.end_date_enter = Entry(frame, textvariable=self.end_date)
         self.end_date_enter.grid(row=2, column=3)
 
-        self.filter = Button(frame, text="Filter", command=self.filter_view_staff).grid(row=3, column=2)
+        Label(frame, text="Sort By: ").grid(row=3, column=0)
+        self.sort = StringVar()
+        choices = ['Name', 'Name Desc', 'None']
+        self.sort.set('None')
+        self.popup = OptionMenu(frame, self.sort, *choices)
+        self.popup.grid(row=3, column = 1)
+
+        self.filter = Button(frame, text="Filter", command=self.filter_view_staff).grid(row=4, column=2)
 
         frame_tree = Frame(self.view_staff)
         frame_tree.grid()
@@ -1006,7 +1138,145 @@ class App:
         self.back = Button(frame_under, text="Back", command=self.back_view_staff).grid(row=0, column=0)
 
     def filter_view_staff(self):
-        pass
+        for i in self.tree.get_children():
+            self.tree.delete(i)
+        '''startd = None
+        endd = None
+        greater = False
+        if self.start_date.get() != "" and self.end_date.get() != "": #and self.start_date.get() <= self.end_date.get():
+            start = [x.strip() for x in self.start_date.get().split('-')]
+            end = [x.strip() for x in self.end_date.get().split('-')]
+            startd = datetime.datetime(int(start[0], 10), int(start[1], 10), int(start[2], 10))
+            endd = datetime.datetime(int(end[0], 10), int(end[1], 10), int(end[2], 10))
+        if startd != None and endd != None:
+            if startd > endd:
+                greater = True
+        if greater == True:
+            messagebox.showwarning("Date", "The start date must be before the end date")
+        elif self.start_date.get() == "" and self.end_date.get() != "":
+            messagebox.showwarning("Date", "There must be a start and end date. They can be the same date")
+        elif self.start_date.get() != "" and self.end_date.get() == "":
+            messagebox.showwarning("Date", "There must be a start and end date. They can be the same date")
+        else:'''
+        if self.site.get() == 'All' and self.fname.get() == '' and self.lname.get() == "" and self.start_date.get() == "" and self.end_date.get() == "":
+            query = ""
+            if self.sort.get() == "Name":
+                query = "Select concat(FirstName, ' ', Lastname), a.username from staff a join normaluser b on a.username = b.username order by concat(FirstName, ' ', Lastname)"
+            elif self.sort.get() == "Name Desc":
+                query = "Select concat(FirstName, ' ', Lastname), a.username from staff a join normaluser b on a.username = b.username order by concat(FirstName, ' ', Lastname) desc"
+            else:
+                query = "Select concat(FirstName, ' ', Lastname), a.username from staff a join normaluser b on a.username = b.username order by concat(FirstName, ' ', Lastname)"
+            self.cursor.execute(query)
+            staff_names = self.cursor.fetchall()
+            query = "select count(employee_ID), username from staffassigned a join normaluser b on a.employee_ID=b.username group by b.username" #% (self.start_date.get(), self.end_date.get())
+            self.cursor.execute(query)
+            shifts = self.cursor.fetchall()
+            shift = {}
+            for s in shifts:
+                shift[s[1]] = s[0]
+            for staff in staff_names:
+                name = staff[0]
+                username = staff[1]
+                shift_count = 0
+                if username in shift:
+                    shift_count = shift[username]
+                self.tree.insert("", "end", values=(name, shift_count))
+        else:
+            query = "Select concat(FirstName,' ', Lastname), a.username from staff a join normaluser b on a.username = b.username where "
+            prev_query = query
+            queryb = "select count(employee_ID), username from staffassigned a join normaluser b on a.employee_ID=b.username where "
+            prev_queryb = queryb
+            site = ""
+            first = ""
+            last = ""
+            date = ""
+            startd = None
+            endd = None
+            greater = False
+            if self.start_date.get() != "" and self.end_date.get() != "": #and self.start_date.get() <= self.end_date.get():
+                start = [x.strip() for x in self.start_date.get().split('-')]
+                end = [x.strip() for x in self.end_date.get().split('-')]
+                startd = datetime.datetime(int(start[0], 10), int(start[1], 10), int(start[2], 10))
+                endd = datetime.datetime(int(end[0], 10), int(end[1], 10), int(end[2], 10))
+            if startd != None and endd != None:
+                if startd > endd:
+                    greater = True
+            if greater == True:
+                messagebox.showwarning("Date", "The start date must be before the end date")
+            elif self.start_date.get() == "" and self.end_date.get() != "":
+                messagebox.showwarning("Date", "There must be a start and end date. They can be the same date")
+            elif self.start_date.get() != "" and self.end_date.get() == "":
+                messagebox.showwarning("Date", "There must be a start and end date. They can be the same date")
+            else:
+                if self.site.get() != "All":
+                    site = "a.SiteName = '" + self.site.get() + "'"
+                if self.fname.get() != "":
+                    first = "b.firstname = '" + self.fname.get() + "'"
+                if self.lname.get() != "":
+                    last = "b.lastname = '" + self.lname.get() + "'"
+                if self.start_date.get() != "" and self.end_date.get() != "":
+                    date = "a.eventstartdate between '" + self.start_date.get() + "'" + " and '" + self.end_date.get() + "'"
+                if site != "":
+                    queryb = queryb + site
+                    if first != "":
+                        query = query + first
+                    if last != "":
+                        query = query + " and " + last
+                    if date != "":
+                        queryb = queryb + " and " + date
+                elif first != "":
+                    query = query + first
+                    if last != "":
+                        query = query + " and " + last
+                    if date != "":
+                        queryb = queryb + date
+                elif last != "":
+                    query = query + last
+                    if date != "":
+                        queryb = queryb + date
+                else:
+                    queryb = queryb + date
+                query_u = False
+                queryb_u = False
+                if query == prev_query:
+                    query = "Select concat(FirstName, ' ', Lastname), a.username from staff a join normaluser b on a.username = b.username"
+                    query_u = True
+                if queryb == prev_queryb:
+                    queryb = "select count(employee_ID), username from staffassigned a join normaluser b on a.employee_ID=b.username group by b.username"
+                    queryb_u = True
+                else:
+                    queryb = queryb + " group by b.username"
+                if self.sort.get() == "Name":
+                    query = query + " order by concat(FirstName, ' ', Lastname) "
+                elif self.sort.get() == "Name Desc":
+                    query = query + " order by concat(FirstName, ' ', Lastname) desc"
+                else:
+                    query = query
+                print(query)
+                print(queryb)
+                self.cursor.execute(query)
+                staff_names = self.cursor.fetchall()
+                self.cursor.execute(queryb)
+                shifts = self.cursor.fetchall()
+                if query_u == True:
+                    staff = {}
+                    for s in staff_names:
+                        staff[s[1]] = s[0]
+                    for shift in shifts:
+                        count = shift[0]
+                        username = shift[1]
+                        self.tree.insert("", "end", values=(staff[username], count))
+                if queryb_u == True:
+                    shift = {}
+                    for s in shifts:
+                        shift[s[1]] = s[0]
+                    for staff in staff_names:
+                        name = staff[0]
+                        username = staff[1]
+                        shift_count = 0
+                        if username in shift:
+                            shift_count = shift[username]
+                        self.tree.insert("", "end", values=(name, shift_count))
 
     def back_view_staff(self):
         self.currGui.withdraw()
@@ -1039,13 +1309,13 @@ class App:
 
     def manage_event(self):
         self.currGui.withdraw()
-        self.manage_event = Toplevel()
-        self.currGui = self.manage_event
-        self.manage_event.title("Manage Event")
+        self.manageEvent = Toplevel()
+        self.currGui = self.manageEvent
+        self.manageEvent.title("Manage Event")
 
-        Label(self.manage_event, text="Manage Event").grid(row=0)
+        Label(self.manageEvent, text="Manage Event").grid(row=0)
 
-        frame = Frame(self.manage_event)
+        frame = Frame(self.manageEvent)
         frame.grid()
 
         Label(frame, text="Name ").grid(row=0, column=0)
@@ -1098,12 +1368,19 @@ class App:
         self.revenue_upper_enter = Entry(frame, textvariable=self.revenue_upper)
         self.revenue_upper_enter.grid(row=3, column=3)
 
+        Label(frame, text="Sort By: ").grid(row=3, column=4)
+        self.sort = StringVar()
+        choices = ['Name', 'Name Desc', 'None']
+        self.sort.set('None')
+        self.popup = OptionMenu(frame, self.sort, *choices)
+        self.popup.grid(row=3, column = 5)
+
         self.filter = Button(frame, text="Filter", command=self.filter_manage_event).grid(row=4, column=0)
         self.create = Button(frame, text="Create", command=self.create_event).grid(row=4, column=1)
         self.view = Button(frame, text="View/Edit", command=self.view_edit_event).grid(row=4, column=2)
         self.delete = Button(frame, text="Delete", command=self.delete_event).grid(row=4, column=3)
 
-        frame_tree = Frame(self.manage_event)
+        frame_tree = Frame(self.manageEvent)
         frame_tree.grid()
 
         self.tree = ttk.Treeview(frame_tree,
@@ -1119,16 +1396,102 @@ class App:
         #self.tree.insert("", "end", values=("4", "5", "6", "7", "8"))
         self.tree.grid(row=1, column=3)
 
-        frame_under = Frame(self.manage_event)
+        frame_under = Frame(self.manageEvent)
         frame_under.grid()
 
         self.back = Button(frame_under, text="Back", command=self.back_manage_event).grid(row=0, column=0)
 
     def filter_manage_event(self):
-        pass
+        for i in self.tree.get_children():
+            self.tree.delete(i)
+        if self.name.get() == '' and self.description.get() == '' and self.start_date.get() == "" and self.end_date.get() == "" and self.duration_lower.get() == 0 and self.duration_upper.get() == 0 and self.visits_lower.get() == 0 and self.visits_upper.get() == 0 and self.revenue_lower.get() == 0 and self.revenue_upper.get() == 0:
+            query = ""
+            if self.sort.get() == "Name":
+                query = "SELECT eventname, startdate, sitename from beltlineevent order by eventname"
+            elif self.sort.get() == "Name Desc":
+                query = "SELECT eventname, startdate, sitename from beltlineevent order by eventname desc"
+            else:
+                query = "SELECT eventname, startdate, sitename from beltlineevent order by eventname"
+            self.cursor.execute(query)
+            self.events = self.cursor.fetchall()
+            for event in self.events:
+                name = event[0]
+                start = event[1]
+                site = event[2]
+                query_staff = "select eventname as Name, count(employee_id) as 'Staff Count' from staffassigned where eventname= '%s' AND eventstartdate='%s' AND sitename= '%s'" % (name, start, site)
+                self.cursor.execute(query_staff)
+                staff = self.cursor.fetchone()
+                query_duration = "select Distinct staffassigned.eventname as Name, (enddate-startdate) as Duration from staffassigned join beltlineevent on staffassigned.eventname = beltlineevent.eventname where beltlineevent.eventname= '%s' AND beltlineevent.startdate='%s' AND beltlineevent.sitename= '%s'" % (name, start, site)
+                self.cursor.execute(query_duration)
+                duration = self.cursor.fetchone()
+                query_visits = "select eventname as Name,count(dateattended) as 'Total Visits' from visitevent where eventname= '%s' AND eventstartdate='%s' AND sitename= '%s'" % (name, start, site)
+                self.cursor.execute(query_visits)
+                visits = self.cursor.fetchone()
+                query_revenue = "Select beltlineevent.eventname, (any_value(price)*count(dateattended)) from visitevent join beltlineevent where beltlineevent.eventname= '%s' AND beltlineevent.startdate='%s' AND beltlineevent.sitename= '%s'" % (name, start, site)
+                self.cursor.execute(query_revenue)
+                revenue = self.cursor.fetchone()
+                self.tree.insert("", "end", values=(name, staff[1], duration[1], visits[1], revenue[1]))
+        '''else:
+            query = "SELECT eventname, startdate, sitename from BeltLineEvent where "
+            query_duration = "select Distinct staffassigned.eventname as Name, (enddate-startdate) as Duration from staffassigned join beltlineevent on staffassigned.eventname = beltlineevent.eventname where "
+            query_visits = "select eventname as Name,count(dateattended) as TotalVisits from visitevent where "
+            query_revenue = "Select beltlineevent.eventname, (any_value(price)*count(dateattended)) as Rev from visitevent join beltlineevent where "
+            name = ""
+            desc = ""
+            duration = ""
+            visits = ""
+            revenue = ""
+            if self.destination.get() != "All":
+                site = "SiteName = '" + self.destination.get() + "'"
+            if self.trans_type.get() != "All":
+                tran = "TransitType = '" + self.trans_type.get() + "'"
+            if self.price_upper.get() != 0 and self.price_lower.get() <= self.price_upper.get():
+                price = price + "Price between '" + str(self.price_lower.get()) + "' and '" + str(self.price_upper.get()) + "'"
+            if site != "":
+                query = query + site
+                if tran != "":
+                    query = query + " and " + tran
+                if price != "":
+                    query = query + " and " + price
+            elif tran != "":
+                query = query + tran
+                if price != "":
+                    query = query + " and " + price
+            else:
+                query = query + price
+            if self.sort.get() == "Name":
+                query = query + " order by eventname"
+            elif self.sort.get() == "Name Desc":
+                query = query + " order by eventname desc"
+            else:
+                query = query
+            self.cursor.execute(query)
+            results = self.cursor.fetchall()
+            for transit in results:
+                route = transit[0]
+                type = transit[1]
+                price = transit[2]
+                queryb = "Select count(sitename) from connects where transitroute = '%s'" % (route)
+                self.cursor.execute(queryb)
+                connected = self.cursor.fetchone()
+                self.tree.insert("", "end", values=(route, type, price, connected))'''
 
     def delete_event(self):
-        pass
+        if len(self.tree.selection()) == 0:
+            messagebox.showwarning("Select Event", "Please select a event to delete")
+        else:
+            select = self.tree.item(self.tree.selection())
+            startDate = ""
+            sitename = ""
+            for event in self.events:
+                if event[0] == select["values"][0]:
+                    startDate = event[1]
+                    sitename = event[2]
+            query = "Delete from beltlineevent where eventname = '%s' and startdate ='%s' and sitename = '%s'" % (select["values"][0], startDate, sitename)
+            self.cursor.execute(query)
+            self.db.commit()
+            self.tree.delete(self.tree.selection()[0])
+            messagebox.showinfo("Success!!", "The Event have been successfully deleted")
 
     def back_manage_event(self):
         self.currGui.withdraw()
@@ -1169,8 +1532,6 @@ class App:
 
         frame = Frame(self.view_event)
         frame.grid()
-
-        ''' TODO: Change the Labels below to data from SQL. Prepopulate everything else with SQL data'''
 
         Label(frame, text="Name ").grid(row=0, column=0)
         Label(frame, text="Event Name").grid(row=0, column=1)
@@ -1250,8 +1611,8 @@ class App:
 
     def view_edit_transit_back(self):
         self.currGui.withdraw()
-        self.manage_event.deiconify()
-        self.currGui = self.manage_event
+        self.manageEvent.deiconify()
+        self.currGui = self.manageEvent
 
     def filter_view_edit_event(self):
         pass
@@ -1311,22 +1672,84 @@ class App:
         self.desc.config(yscrollcommand=self.scroll.set)
 
         Label(frame, text="Assign Staff").grid(row=4, column=0)
-        list = Listbox(frame, selectmode=MULTIPLE)
-        list.insert(0, 'Staff 1')
-        list.insert(1, 'Staff 2')
-        list.insert(2, 'Staff 3')
-        list.grid(row=4, column=1)
+        self.list = Listbox(frame, selectmode=MULTIPLE)
+        #list.insert(0, 'Staff 1')
+        #list.insert(1, 'Staff 2')
+        #list.insert(2, 'Staff 3')
+        self.list.grid(row=4, column=1)
+
+        self.load_staff = Button(frame, text="Load Available Staff", command=self.load_staff).grid(row = 4, column= 2)
 
         self.back = Button(frame, text="Back", command=self.create_event_back).grid(row=5, column=0)
         self.create = Button(frame, text="Create", command=self.create_event_btn).grid(row=5, column=1)
 
     def create_event_back(self):
         self.currGui.withdraw()
-        self.manage_event.deiconify()
-        self.currGui = self.manage_event
+        self.manageEvent.deiconify()
+        self.currGui = self.manageEvent
+
+    def load_staff(self):
+        self.list.delete(0,'end')
+        if self.start_date.get() == "" or self.end_date.get() == "":
+            messagebox.showwarning("Start Date and End Date", "Please select a start date and end date in order to see the available staff")
+        else:
+            query = "select distinct concat(firstname, ' ',lastname) as Staff from view_staffnames where employee_ID not in (select employee_ID from staffassigned where eventstartdate between '2019-03-20' and '1019-03-24' )"
+            self.cursor.execute(query)
+            staff = self.cursor.fetchall()
+            for s in staff:
+                self.list.insert('end', s[0])
 
     def create_event_btn(self):
-        pass
+        startd = None
+        endd = None
+        greater = False
+        if self.start_date.get() != "" and self.end_date.get() != "": #and self.start_date.get() <= self.end_date.get():
+            start = [x.strip() for x in self.start_date.get().split('-')]
+            end = [x.strip() for x in self.end_date.get().split('-')]
+            startd = datetime.datetime(int(start[0], 10), int(start[1], 10), int(start[2], 10))
+            endd = datetime.datetime(int(end[0], 10), int(end[1], 10), int(end[2], 10))
+        if startd != None and endd != None:
+            if startd > endd:
+                greater = True
+        if self.name.get() == "":
+            messagebox.showwarning("Name", "Please enter a event name")
+        elif self.min_staff.get() == 0:
+            messagebox.showwarning("Minimum Staff", "Please enter the miminum staff required for this event")
+        elif greater == True:
+            messagebox.showwarning("Date", "The start date must be before the end date")
+        elif self.start_date.get() == "" and self.end_date.get() != "":
+            messagebox.showwarning("Date", "There must be a start and end date. They can be the same date")
+        elif self.start_date.get() != "" and self.end_date.get() == "":
+            messagebox.showwarning("Date", "There must be a start and end date. They can be the same date")
+        elif self.desc.get("1.0",END) == "":
+            messagebox.showwarning("Description", "Please enter a description for the event")
+        elif len(self.list.curselection()) == 0:
+            messagebox.showwarning("Staff", "Please assign staff to this event")
+        elif len(self.list.curselection()) < self.min_staff.get():
+            messagebox.showwarning("Staff", "The number of staff assigned must not be fewer than the minimum staff required")
+        else:
+            query_site = "select sitename from site where managerID = '%s'" % (self.user.get())
+            self.cursor.execute(query_site)
+            site = self.cursor.fetchone()
+            query_check = "select eventname, startdate from beltlineevent where startdate = '%s' and eventname = '%s' and sitename = '%s'" % (self.start_date.get(), self.name.get(), site[0])
+            check = self.cursor.execute(query_check)
+            #query_c = "select eventname, startdate, sitename, enddate from beltlineevent where eventname = '%s', sitename = '%s', "
+            if check == 1:
+                messagebox.showwarning("Error!", "There is already an event with this name and start date at your site. Please enter a different start date or a different name")
+            query = "insert into beltlineevent values('%s','%s','%s','%s','%s','%s','%s','%s')" % (self.name.get(),self.start_date.get() ,site[0],self.end_date.get() ,self.price.get(),self.capacity.get(),self.min_staff.get(),self.desc.get("1.0", END))
+            self.cursor.execute(query)
+            indicies = self.list.curselection()
+            for index in indicies:
+                staff = self.list.get(index)
+                query_id = "select username from normaluser where concat(firstname, ' ',lastname)= '%s'" % (staff)
+                self.cursor.execute(query_id)
+                username = self.cursor.fetchone()
+                query = "Insert into staffassigned values('%s','%s','%s','%s')" % (username[0], self.name.get(), self.start_date.get(), site[0])
+                self.cursor.execute(query)
+            self.db.commit()
+            messagebox.showinfo("Success!", "The event has been created")
+            self.currGui.withdraw()
+            self.manage_event()
 
     def view_visit_history(self):
         pass
@@ -1955,9 +2378,16 @@ class App:
         self.route_enter = Entry(frame, textvariable=self.route)
         self.route_enter.grid(row=0, column=3)
 
+        query = "Select Distinct SiteName from Site"
+        self.cursor.execute(query)
+        sites = self.cursor.fetchall()
+
         Label(frame, text="Contain Site ").grid(row=1, column=0)
         self.site = StringVar()
-        choices_type = ['Approved', 'Declined', 'Pending', 'All']
+        choices_type = []
+        for site in sites:
+            choices_type.append(site[0])
+        choices_type.append('All')
         self.site.set('All')
         self.popup = OptionMenu(frame, self.site, *choices_type)
         self.popup.grid(row=1, column=1)
@@ -1972,11 +2402,18 @@ class App:
         self.price_upper_enter = Entry(frame, textvariable=self.price_upper)
         self.price_upper_enter.grid(row=1, column=5)
 
-        self.filter = Button(frame, text="Filter", command=self.filter_manage_transit).grid(row=2, column=0)
+        Label(frame, text="Sort By: ").grid(row=2, column=0)
+        self.sort = StringVar()
+        choices = ['Transport Type', 'Price', 'Transport Type Desc', 'Price Desc', 'None']
+        self.sort.set('None')
+        self.popup = OptionMenu(frame, self.sort, *choices)
+        self.popup.grid(row=2, column = 1)
 
-        self.create = Button(frame, text="Create", command=self.create_transit).grid(row=2, column=1)
-        self.edit = Button(frame, text='Edit', command=self.edit_transit).grid(row=2, column=2)
-        self.delete = Button(frame, text='Delete', command=self.delete_transit).grid(row=2, column=3)
+        self.filter = Button(frame, text="Filter", command=self.filter_manage_transit).grid(row=3, column=0)
+
+        self.create = Button(frame, text="Create", command=self.create_transit).grid(row=3, column=1)
+        self.edit = Button(frame, text='Edit', command=self.edit_transit).grid(row=3, column=2)
+        self.delete = Button(frame, text='Delete', command=self.delete_transit).grid(row=3, column=3)
 
         frame_tree = Frame(self.manageTranGui)
         frame_tree.grid()
@@ -2000,7 +2437,99 @@ class App:
         self.back = Button(frame_under, text="Back", command=self.back_manage_transit).grid(row=0, column=0)
 
     def filter_manage_transit(self):
-        pass
+        for i in self.tree.get_children():
+            self.tree.delete(i)
+        if self.trans_type.get() == 'All' and self.route.get() == '' and self.site.get() == "All" and self.price_lower.get() == 0 and self.price_upper.get() == 0:
+            query = ""
+            queryc = "select transit_route,count(transit_route) from takes group by transit_route"
+            if self.sort.get() == "Transport Type":
+                query = "Select Transit_route, Transit_type, Price from Transit order by Transit_type"
+            elif self.sort.get() == "Price":
+                query = "Select Transit_route, Transit_type, Price from Transit order by Price"
+            elif self.sort.get() == "Transport Type Desc":
+                query = "Select Transit_route, Transit_type, Price from Transit order by Transit_type desc"
+            elif self.sort.get() == "Price Desc":
+                query = "Select Transit_route, Transit_type, Price from Transit order by Price desc"
+            else:
+                query = "Select Transit_route, Transit_type, Price from Transit"
+            self.cursor.execute(query)
+            transits = self.cursor.fetchall()
+            self.cursor.execute(queryc)
+            transits_logged = self.cursor.fetchall()
+            logged = {}
+            for t in transits_logged:
+                logged[t[0]] = t[1]
+            for transit in transits:
+                route = transit[0]
+                type = transit[1]
+                price = transit[2]
+                queryb = "Select count(sitename) from connects where transitroute = '%s'" % (route)
+                self.cursor.execute(queryb)
+                connected = self.cursor.fetchone()
+                transits_logged = 0
+                if route in logged:
+                    transits_logged = logged[route]
+                self.tree.insert("", "end", values=(route, type, price, connected, transits_logged))
+        else:
+            query = "select distinct Transit_route, Transit_type, Price from transit join connects on transit.transit_route = connects.TransitRoute where "
+            site = ""
+            tran = ""
+            price = ""
+            route = ""
+            if self.site.get() != "All":
+                site = "SiteName = '" + self.site.get() + "'"
+            if self.trans_type.get() != "All":
+                tran = "TransitType = '" + self.trans_type.get() + "'"
+            if self.price_upper.get() != 0 and self.price_lower.get() <= self.price_upper.get():
+                price = price + "Price between '" + str(self.price_lower.get()) + "' and '" + str(self.price_upper.get()) + "'"
+            if self.route.get() != "":
+                route = "TransitRoute = '" + self.route.get() + "'"
+            if site != "":
+                query = query + site
+                if tran != "":
+                    query = query + " and " + tran
+                if price != "":
+                    query = query + " and " + price
+                if route != "":
+                    query = query + " and " + route
+            elif tran != "":
+                query = query + tran
+                if price != "":
+                    query = query + " and " + price
+                if route != "":
+                    query = query + " and " + route
+            elif price != "":
+                query = query + price
+                if route != "":
+                    query = query + " and " + route
+            else:
+                query = query + route
+            if self.sort.get() == "Transport Type":
+                query = query + " order by Transit_type"
+            elif self.sort.get() == "Price":
+                query = query + " order by Price"
+            elif self.sort.get() == "Transport Type Desc":
+                query = query + " order by Transit_type desc"
+            elif self.sort.get() == "Price Desc":
+                query = query + " order by Price desc"
+            else:
+                query = query
+            self.cursor.execute(query)
+            results = self.cursor.fetchall()
+            queryc = "select transit_route,count(transit_route) from takes group by transit_route"
+            self.cursor.execute(queryc)
+            transits_logged = self.cursor.fetchall()
+            logged = {}
+            for t in transits_logged:
+                logged[t[0]] = t[1]
+            for transit in results:
+                route = transit[0]
+                type = transit[1]
+                price = transit[2]
+                queryb = "Select count(sitename) from connects where transitroute = '%s'" % (route)
+                self.cursor.execute(queryb)
+                connected = self.cursor.fetchone()
+                self.tree.insert("", "end", values=(route, type, price, connected, logged[route]))
 
     def back_manage_transit(self):
         self.currGui.withdraw()
@@ -2060,13 +2589,19 @@ class App:
         self.price_enter = Entry(frame, textvariable=self.price)
         self.price_enter.grid(row=0, column=5)
 
+        query = "select sitename from site"
+        self.cursor.execute(query)
+        sites = self.cursor.fetchall()
+
         Label(frame, text="Connected Sites").grid(row=1, column=0)
 
-        list = Listbox(frame, selectmode=MULTIPLE)
-        list.insert(0, 'Atlanta Beltline Center')
-        list.insert(1, 'Gorden-White Park')
-        list.insert(2, 'Inman Park')
-        list.grid(row=1, column=1)
+        self.list = Listbox(frame, selectmode=MULTIPLE)
+        for site in sites:
+            self.list.insert('end', site[0])
+        #list.insert(0, 'Atlanta Beltline Center')
+        #list.insert(1, 'Gorden-White Park')
+        #list.insert(2, 'Inman Park')
+        self.list.grid(row=1, column=1)
 
         self.registerUser = Button(frame, text="Back", command=self.create_transit_back).grid(row=2, column=1)
         self.registerUser = Button(frame, text="Create", command=self.create_transit_btn).grid(row=2, column=2)
@@ -2077,43 +2612,91 @@ class App:
         self.currGui = self.manageTranGui
 
     def create_transit_btn(self):
-        pass
+        if self.transType.get() == "":
+            messagebox.showwarning("Transport Type", "Please select somthing for Transport Type")
+        elif self.route.get() == "":
+            messagebox.showwarning("Route", "Please enter a route")
+        elif len(self.list.curselection()) == 0:
+            messagebox.showwarning("Connected Sites", "Please select some sites for the transit to service")
+        else:
+            query = "Insert into Transit values('%s', '%s', '%s')" % (self.transType.get(), self.route.get(), str(self.price.get()))
+            self.cursor.execute(query)
+            indicies = self.list.curselection()
+            for index in indicies:
+                site = self.list.get(index)
+                query = "Insert into Connects values('%s', '%s', '%s')" % (site, self.transType.get(), self.route.get())
+                self.cursor.execute(query)
+            self.db.commit()
+            messagebox.showinfo("Success!!", "The Transit has been successfully created")
+            self.currGui.withdraw()
+            self.manage_transit()
 
     def edit_transit(self):
-        self.manageTranGui.withdraw()
-        self.editTransit = Toplevel()
-        self.prevGUI = self.currGui
-        self.currGui = self.editTransit
-        self.editTransit.title("Edit Transit")
+        if len(self.tree.selection()) == 0:
+            messagebox.showwarning("Select Site", "Please select a site to edit")
+        else:
+            select = self.tree.item(self.tree.selection())
+            route = select['values'][0]
+            self.original_route = route
+            self.type = select['values'][1]
+            price = select['values'][2]
+            self.manageTranGui.withdraw()
+            self.editTransit = Toplevel()
+            self.prevGUI = self.currGui
+            self.currGui = self.editTransit
+            self.editTransit.title("Edit Transit")
 
-        Label(self.editTransit, text="Edit Transit").grid(row=0)
+            Label(self.editTransit, text="Edit Transit").grid(row=0)
 
-        frame = Frame(self.editTransit)
-        frame.grid()
+            frame = Frame(self.editTransit)
+            frame.grid()
 
-        Label(frame, text="Transport Type").grid(row=0, column=0)
-        Label(frame, text="Bus").grid(row=0, column=1)
+            Label(frame, text="Transport Type").grid(row=0, column=0)
+            Label(frame, text=self.type).grid(row=0, column=1)
 
-        Label(frame, text="Route").grid(row=0, column=2)
-        self.route = StringVar()
-        self.route_enter = Entry(frame, textvariable=self.route)
-        self.route_enter.grid(row=0, column=3)
+            Label(frame, text="Route").grid(row=0, column=2)
+            self.route = StringVar()
+            self.route.set(route)
+            self.route_enter = Entry(frame, textvariable=self.route)
+            self.route_enter.grid(row=0, column=3)
 
-        Label(frame, text="Price").grid(row=0, column=4)
-        self.price = IntVar()
-        self.price_enter = Entry(frame, textvariable=self.price)
-        self.price_enter.grid(row=0, column=5)
+            Label(frame, text="Price").grid(row=0, column=4)
+            self.price = IntVar()
+            self.price.set(price)
+            self.price_enter = Entry(frame, textvariable=self.price)
+            self.price_enter.grid(row=0, column=5)
 
-        Label(frame, text="Connected Sites").grid(row=1, column=0)
+            Label(frame, text="Connected Sites").grid(row=1, column=0)
 
-        list = Listbox(frame, selectmode=MULTIPLE)
-        list.insert(0, 'Atlanta Beltline Center')
-        list.insert(1, 'Gorden-White Park')
-        list.insert(2, 'Inman Park')
-        list.grid(row=1, column=1)
+            query = "select sitename from site"
+            self.cursor.execute(query)
+            sites = self.cursor.fetchall()
 
-        self.registerUser = Button(frame, text="Back", command=self.edit_transit_back).grid(row=2, column=1)
-        self.registerUser = Button(frame, text="Update", command=self.edit_transit_btn).grid(row=2, column=2)
+            query = "select sitename from connects where transitroute= '%s'" % (route)
+            self.cursor.execute(query)
+            selected = self.cursor.fetchall()
+            self.previously_selected = []
+
+            self.list = Listbox(frame, selectmode=MULTIPLE)
+            count = 0
+            dict = {}
+            for site in sites:
+                self.list.insert(count, site[0])
+                dict[site[0]] = count
+                count = count + 1
+            #list.insert(0, 'Atlanta Beltline Center')
+            #list.insert(1, 'Gorden-White Park')
+            #list.insert(2, 'Inman Park')
+            self.list.grid(row=1, column=1)
+
+            for site in selected:
+                index = dict[site[0]]
+                self.list.select_set(index)
+                self.previously_selected.append(site[0])
+
+
+            self.registerUser = Button(frame, text="Back", command=self.edit_transit_back).grid(row=2, column=1)
+            self.registerUser = Button(frame, text="Update", command=self.edit_transit_btn).grid(row=2, column=2)
 
     def edit_transit_back(self):
         self.currGui.withdraw()
@@ -2121,10 +2704,36 @@ class App:
         self.currGui = self.manageTranGui
 
     def edit_transit_btn(self):
-        pass
+        query = "Update Transit set Transit_Route = '%s', Price = '%s' where Transit_Type = '%s' and Transit_Route = '%s'" % (self.route.get(), str(self.price.get()), self.type, self.original_route)
+        self.cursor.execute(query)
+        indices = self.list.curselection()
+        currently_selected = []
+        for index in indices:
+            currently_selected.append(self.list.get(index))
+        for index in indices:
+            site = self.list.get(index)
+            if site not in self.previously_selected:
+                query = "Insert into Connects values('%s', '%s', '%s')" % (site, self.type, self.route.get())
+                self.cursor.execute(query)
+        for site in self.previously_selected:
+            if site not in currently_selected:
+                query = "Delete from Connects where TransitType = '%s' and Transitroute = '%s' and SiteName = '%s'" % (self.type, self.original_route, site)
+                self.cursor.execute(query)
+        self.db.commit()
+        messagebox.showinfo("Success!!", "The transit has been edited")
+        self.currGui.withdraw()
+        self.manage_transit()
 
     def delete_transit(self):
-        pass
+        if len(self.tree.selection()) == 0:
+            messagebox.showwarning("Select Transit", "Please select a transit to delete")
+        else:
+            select = self.tree.item(self.tree.selection())
+            query = "Delete from transit where transit_route = '%s'" % (select["values"][0])
+            self.cursor.execute(query)
+            self.db.commit()
+            self.tree.delete(self.tree.selection()[0])
+            messagebox.showinfo("Success!!", "The Transit have been successfully deleted")
 
     def manage_site(self):
         self.currGui.withdraw()
