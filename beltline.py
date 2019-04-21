@@ -69,7 +69,7 @@ class App:
 
             self.db = pymysql.connect(host="localhost",
                                       user="root",
-                                      passwd="HelloWorld8954",  # insert your db password here
+                                      passwd="savirahe",  # insert your db password here
                                       db="beltLine")
             return self.db
         except:
@@ -124,7 +124,7 @@ class App:
             elif self.UserSubtype == "Admin":
                 self.admin_only_functionality()
             elif self.UserSubtype == "Manager":
-                self.admin_only_functionality()
+                self.manager_only_functionality()
 
         # Employee and Visitor
         if self.userType == "Employee, Visitor":
@@ -905,18 +905,18 @@ class App:
         frame_tree = Frame(self.site_report)
         frame_tree.grid()
 
-        self.tree = ttk.Treeview(frame_tree,
+        self.site_tree = ttk.Treeview(frame_tree,
                             columns=['Date', 'Event Count', 'Staff Count', 'Total Visits', 'Total Revenue ($)'],
                             show='headings', selectmode='browse')
 
-        self.tree.heading('Date', text='Date')
-        self.tree.heading('Event Count', text='Event Count')
-        self.tree.heading('Staff Count', text='Staff Count')
-        self.tree.heading('Total Visits', text='Total Visits')
-        self.tree.heading('Total Revenue ($)', text="Total Revenue ($)")
+        self.site_tree.heading('Date', text='Date')
+        self.site_tree.heading('Event Count', text='Event Count')
+        self.site_tree.heading('Staff Count', text='Staff Count')
+        self.site_tree.heading('Total Visits', text='Total Visits')
+        self.site_tree.heading('Total Revenue ($)', text="Total Revenue ($)")
         #self.tree.insert("", "end", values=("1", "2", "3", "4", "6"))
         #self.tree.insert("", "end", values=("4", "5", "6", "7", "8"))
-        self.tree.grid(row=1, column=3)
+        self.site_tree.grid(row=1, column=3)
 
         frame_under = Frame(self.site_report)
         frame_under.grid()
@@ -966,41 +966,64 @@ class App:
         if startd != None and endd != None:
             if startd > endd:
                 greater = True
-        if greater == True:
-            messagebox.showwarning("Date", "The start date must be before the end date")
-        elif self.start_date.get() == "" and self.end_date.get() != "":
+        '''if self.start_date.get() == "" and self.end_date.get() == "":
+            messagebox.showwarning("Date", "Please enter a date to filter on")'''
+        if self.start_date.get() == "" and self.end_date.get() != "":
             messagebox.showwarning("Date", "There must be a start and end date. They can be the same date")
         elif self.start_date.get() != "" and self.end_date.get() == "":
             messagebox.showwarning("Date", "There must be a start and end date. They can be the same date")
+        elif greater == True:
+            messagebox.showwarning("Date", "The start date must be before the end date")
         else:
-            if self.site.get() == 'All' and self.fname.get() == '' and self.lname.get() == "" and self.start_date.get() != "" and self.end_date.get() != "":
+            if self.start_date.get() == "" and self.end_date.get() == "" and self.event_count_lower.get() == 0 and self.event_count_upper.get() == 0 and self.staff_count_lower.get() == 0 and self.staff_count_upper.get() == 0 and self.visits_lower.get() == 0 and self.visits_upper.get() == 0 and self.revenue_lower.get() == 0 and self.revenue_upper.get() == 0:
                 #startdate, event count (is start date correct here??)
-                query = ""
+                query = "Select dateattended, count(visitevent.eventname) from visitevent join staffassigned group by dateattended"
                 #staff count
-                query1 = ""
+                query_staff = "select dateattended, count(username) from VisitEvent join staffassigned group by dateattended"
                 #total visits
-                query2 = "Select dateattended, count(dateattended) from VisitEvent group by dateattended"
+                query_visits = "Select dateattended, count(dateattended) from VisitEvent group by dateattended"
                 #revenue
-                query3 = "Select (any_value(price)*count(dateattended)) from visitevent join beltlineevent group by dateattended"
-                if self.sort.get() == "Date":
-                    query = "select startdate, sitename as name, count(eventname) as 'Event Count' from BeltLineEvent group by sitename, startdate order by startdate"
+                query_revenue = "Select dateattended, (any_value(price)*count(dateattended)) from visitevent join beltlineevent group by dateattended"
+                if self.sort.get() == "Date Attended":
+                    query = "Select dateattended, count(visitevent.eventname) from visitevent join staffassigned group by dateattended order by dateattended"
                 elif self.sort.get() == "Event Count":
-                    query = "select startdate, sitename as name, count(eventname) as 'Event Count' from BeltLineEvent group by sitename, startdate order by count(eventname)"
-                elif self.sort.get() == "Date Desc":
-                    query = "select startdate, sitename as name, count(eventname) as 'Event Count' from BeltLineEvent group by sitename, startdate order by startdate desc"
+                    query = "Select dateattended, count(visitevent.eventname) from visitevent join staffassigned group by dateattended order by count(visitevent.eventname)"
+                elif self.sort.get() == "Date Attended Desc":
+                    query = "Select dateattended, count(visitevent.eventname) from visitevent join staffassigned group by dateattended order by dateattended desc"
                 elif self.sort.get() == "Event Count Desc":
-                    query = "select startdate, sitename as name, count(eventname) as 'Event Count' from BeltLineEvent group by sitename, startdate order by count(eventname) desc"
+                    query = "Select dateattended, count(visitevent.eventname) from visitevent join staffassigned group by dateattended order by count(visitevent.eventname) desc"
                 else:
-                    query = "select startdate, sitename as name, count(eventname) as 'Event Count' from BeltLineEvent group by sitename, startdate order by startdate"
-                '''self.cursor.execute(query)
-                staff_names = self.cursor.fetchall()
-                for staff in staff_names:
-                    name = staff[0]
-                    username = staff[1]
-                    shift_count = 0
-                    if username in shift:
-                        shift_count = shift[username]
-                    self.tree.insert("", "end", values=(name, shift_count))'''
+                    query = "Select dateattended, count(visitevent.eventname) from visitevent join staffassigned group by dateattended"
+                self.cursor.execute(query)
+                events = self.cursor.fetchall()
+                self.cursor.execute(query_staff)
+                staff = self.cursor.fetchall()
+                staffcount = {}
+                for s in staff:
+                    staffcount[s[0]] = s[1]
+                self.cursor.execute(query_visits)
+                visits = self.cursor.fetchall()
+                visitcount = {}
+                for v in visits:
+                    visitcount[v[0]] = v[1]
+                self.cursor.execute(query_revenue)
+                revenue = self.cursor.fetchall()
+                revenuecount = {}
+                for r in revenue:
+                    revenuecount[r[0]] = r[1]
+                for event in events:
+                    date = event[0]
+                    event_count = event[1]
+                    staff_count = 0
+                    if date in staffcount:
+                        staff_count = staffcount[date]
+                    visit_count = 0
+                    if date in visitcount:
+                        visit_count = visitcount[date]
+                    revenue_count = 0
+                    if date in revenuecount:
+                        revenue_count = revenuecount[date]
+                    self.tree.insert("", "end", values=(date, event_count, staff_count, visit_count, revenue_count))
             '''else:
                 query = "select distinct(concat(c.FirstName, ' ', c.Lastname)),MATH from staffassigned a join BeltLineEvent b join normaluser c on a.EventName = b.EventName and a.EventStartDate=b.StartDate and a.Sitename = b.sitename and a.employee_ID = c.username where "
                 site = ""
@@ -1308,110 +1331,119 @@ class App:
             self.currGui = self.navGUI
 
     def manage_event(self):
-        self.currGui.withdraw()
-        self.manageEvent = Toplevel()
-        self.currGui = self.manageEvent
-        self.manageEvent.title("Manage Event")
+        site_query = "select sitename from Site where managerid = '%s'" % (self.user.get())
+        result = self.cursor.execute(site_query)
+        if result == 0:
+            messagebox.showinfo("No Site", "You do not manage a site so you cannot access this screen.")
+        else:
+            self.currGui.withdraw()
+            self.manageEvent = Toplevel()
+            self.currGui = self.manageEvent
+            self.manageEvent.title("Manage Event")
 
-        Label(self.manageEvent, text="Manage Event").grid(row=0)
+            Label(self.manageEvent, text="Manage Event").grid(row=0)
 
-        frame = Frame(self.manageEvent)
-        frame.grid()
+            frame = Frame(self.manageEvent)
+            frame.grid()
 
-        Label(frame, text="Name ").grid(row=0, column=0)
-        self.name = StringVar()
-        self.name_enter = Entry(frame, textvariable=self.name)
-        self.name_enter.grid(row=0, column=1)
+            Label(frame, text="Name ").grid(row=0, column=0)
+            self.name = StringVar()
+            self.name_enter = Entry(frame, textvariable=self.name)
+            self.name_enter.grid(row=0, column=1)
 
-        Label(frame, text="Description Keyword ").grid(row=0, column=2)
-        self.description = StringVar()
-        self.description_enter = Entry(frame, textvariable=self.description)
-        self.description_enter.grid(row=0, column=3)
+            Label(frame, text="Description Keyword ").grid(row=0, column=2)
+            self.description = StringVar()
+            self.description_enter = Entry(frame, textvariable=self.description)
+            self.description_enter.grid(row=0, column=3)
 
-        Label(frame, text="Start Date").grid(row=1, column=0)
-        self.start_date = StringVar()
-        self.start_date_enter = Entry(frame, textvariable=self.start_date)
-        self.start_date_enter.grid(row=1, column=1)
+            Label(frame, text="Start Date").grid(row=1, column=0)
+            self.start_date = StringVar()
+            self.start_date_enter = Entry(frame, textvariable=self.start_date)
+            self.start_date_enter.grid(row=1, column=1)
 
-        Label(frame, text="End Date").grid(row=1, column=2)
-        self.end_date = StringVar()
-        self.end_date_enter = Entry(frame, textvariable=self.end_date)
-        self.end_date_enter.grid(row=1, column=3)
+            Label(frame, text="End Date").grid(row=1, column=2)
+            self.end_date = StringVar()
+            self.end_date_enter = Entry(frame, textvariable=self.end_date)
+            self.end_date_enter.grid(row=1, column=3)
 
-        Label(frame, text="Duration Range").grid(row=2, column=0)
-        self.duration_lower = IntVar()
-        self.duration_lower_enter = Entry(frame, textvariable=self.duration_lower)
-        self.duration_lower_enter.grid(row=2, column=1)
+            Label(frame, text="Duration Range").grid(row=2, column=0)
+            self.duration_lower = IntVar()
+            self.duration_lower_enter = Entry(frame, textvariable=self.duration_lower)
+            self.duration_lower_enter.grid(row=2, column=1)
 
-        Label(frame, text=" -- ").grid(row=2, column=2)
-        self.duration_upper = IntVar()
-        self.duration_upper_enter = Entry(frame, textvariable=self.duration_upper)
-        self.duration_upper_enter.grid(row=2, column=3)
+            Label(frame, text=" -- ").grid(row=2, column=2)
+            self.duration_upper = IntVar()
+            self.duration_upper_enter = Entry(frame, textvariable=self.duration_upper)
+            self.duration_upper_enter.grid(row=2, column=3)
 
-        Label(frame, text="Total Visits Range").grid(row=2, column=4)
-        self.visits_lower = IntVar()
-        self.visits_lower_enter = Entry(frame, textvariable=self.visits_lower)
-        self.visits_lower_enter.grid(row=2, column=5)
+            Label(frame, text="Total Visits Range").grid(row=2, column=4)
+            self.visits_lower = IntVar()
+            self.visits_lower_enter = Entry(frame, textvariable=self.visits_lower)
+            self.visits_lower_enter.grid(row=2, column=5)
 
-        Label(frame, text=" -- ").grid(row=2, column=6)
-        self.visits_upper = IntVar()
-        self.visits_upper_enter = Entry(frame, textvariable=self.visits_upper)
-        self.visits_upper_enter.grid(row=2, column=7)
+            Label(frame, text=" -- ").grid(row=2, column=6)
+            self.visits_upper = IntVar()
+            self.visits_upper_enter = Entry(frame, textvariable=self.visits_upper)
+            self.visits_upper_enter.grid(row=2, column=7)
 
-        Label(frame, text="Total Revenue Range").grid(row=3, column=0)
-        self.revenue_lower = IntVar()
-        self.revenue_lower_enter = Entry(frame, textvariable=self.revenue_lower)
-        self.revenue_lower_enter.grid(row=3, column=1)
+            Label(frame, text="Total Revenue Range").grid(row=3, column=0)
+            self.revenue_lower = IntVar()
+            self.revenue_lower_enter = Entry(frame, textvariable=self.revenue_lower)
+            self.revenue_lower_enter.grid(row=3, column=1)
 
-        Label(frame, text=" -- ").grid(row=3, column=2)
-        self.revenue_upper = IntVar()
-        self.revenue_upper_enter = Entry(frame, textvariable=self.revenue_upper)
-        self.revenue_upper_enter.grid(row=3, column=3)
+            Label(frame, text=" -- ").grid(row=3, column=2)
+            self.revenue_upper = IntVar()
+            self.revenue_upper_enter = Entry(frame, textvariable=self.revenue_upper)
+            self.revenue_upper_enter.grid(row=3, column=3)
 
-        Label(frame, text="Sort By: ").grid(row=3, column=4)
-        self.sort = StringVar()
-        choices = ['Name', 'Name Desc', 'None']
-        self.sort.set('None')
-        self.popup = OptionMenu(frame, self.sort, *choices)
-        self.popup.grid(row=3, column = 5)
+            Label(frame, text="Sort By: ").grid(row=3, column=4)
+            self.sort = StringVar()
+            choices = ['Name', 'Name Desc', 'None']
+            self.sort.set('None')
+            self.popup = OptionMenu(frame, self.sort, *choices)
+            self.popup.grid(row=3, column = 5)
 
-        self.filter = Button(frame, text="Filter", command=self.filter_manage_event).grid(row=4, column=0)
-        self.create = Button(frame, text="Create", command=self.create_event).grid(row=4, column=1)
-        self.view = Button(frame, text="View/Edit", command=self.view_edit_event).grid(row=4, column=2)
-        self.delete = Button(frame, text="Delete", command=self.delete_event).grid(row=4, column=3)
+            self.filter = Button(frame, text="Filter", command=self.filter_manage_event).grid(row=4, column=0)
+            self.create = Button(frame, text="Create", command=self.create_event).grid(row=4, column=1)
+            self.view = Button(frame, text="View/Edit", command=self.view_edit_event).grid(row=4, column=2)
+            self.delete = Button(frame, text="Delete", command=self.delete_event).grid(row=4, column=3)
 
-        frame_tree = Frame(self.manageEvent)
-        frame_tree.grid()
+            frame_tree = Frame(self.manageEvent)
+            frame_tree.grid()
 
-        self.tree = ttk.Treeview(frame_tree,
-                            columns=['Name', 'Staff Count', 'Duration (Days)', 'Total Visits', 'Total Revenue'],
-                            show='headings', selectmode='browse')
+            self.tree = ttk.Treeview(frame_tree,
+                                columns=['Name', 'Staff Count', 'Duration (Days)', 'Total Visits', 'Total Revenue', 'Start Date'],
+                                show='headings', selectmode='browse')
 
-        self.tree.heading('Name', text='Name')
-        self.tree.heading('Staff Count', text='Staff Count')
-        self.tree.heading('Duration (Days)', text='Duration (Days)')
-        self.tree.heading('Total Visits', text='Total Visits')
-        self.tree.heading('Total Revenue', text="Total Revenue")
-        #self.tree.insert("", "end", values=("1", "2", "3", "4", "6"))
-        #self.tree.insert("", "end", values=("4", "5", "6", "7", "8"))
-        self.tree.grid(row=1, column=3)
+            self.tree.heading('Name', text='Name')
+            self.tree.heading('Staff Count', text='Staff Count')
+            self.tree.heading('Duration (Days)', text='Duration (Days)')
+            self.tree.heading('Total Visits', text='Total Visits')
+            self.tree.heading('Total Revenue', text="Total Revenue")
+            self.tree.heading('Start Date', text='Start Date')
+            #self.tree.insert("", "end", values=("1", "2", "3", "4", "6"))
+            #self.tree.insert("", "end", values=("4", "5", "6", "7", "8"))
+            self.tree.grid(row=1, column=3)
 
-        frame_under = Frame(self.manageEvent)
-        frame_under.grid()
+            frame_under = Frame(self.manageEvent)
+            frame_under.grid()
 
-        self.back = Button(frame_under, text="Back", command=self.back_manage_event).grid(row=0, column=0)
+            self.back = Button(frame_under, text="Back", command=self.back_manage_event).grid(row=0, column=0)
 
     def filter_manage_event(self):
         for i in self.tree.get_children():
             self.tree.delete(i)
         if self.name.get() == '' and self.description.get() == '' and self.start_date.get() == "" and self.end_date.get() == "" and self.duration_lower.get() == 0 and self.duration_upper.get() == 0 and self.visits_lower.get() == 0 and self.visits_upper.get() == 0 and self.revenue_lower.get() == 0 and self.revenue_upper.get() == 0:
             query = ""
+            site_query = "select sitename from Site where managerid = '%s'" % (self.user.get())
+            self.cursor.execute(site_query)
+            site = self.cursor.fetchone()
             if self.sort.get() == "Name":
-                query = "SELECT eventname, startdate, sitename from beltlineevent order by eventname"
+                query = "SELECT eventname, startdate, sitename from beltlineevent where sitename = '%s' order by eventname" % (site[0])
             elif self.sort.get() == "Name Desc":
-                query = "SELECT eventname, startdate, sitename from beltlineevent order by eventname desc"
+                query = "SELECT eventname, startdate, sitename from beltlineevent where sitename = '%s' order by eventname desc" % (site[0])
             else:
-                query = "SELECT eventname, startdate, sitename from beltlineevent order by eventname"
+                query = "SELECT eventname, startdate, sitename from beltlineevent where sitename = '%s' order by eventname" % (site[0])
             self.cursor.execute(query)
             self.events = self.cursor.fetchall()
             for event in self.events:
@@ -1430,7 +1462,7 @@ class App:
                 query_revenue = "Select beltlineevent.eventname, (any_value(price)*count(dateattended)) from visitevent join beltlineevent where beltlineevent.eventname= '%s' AND beltlineevent.startdate='%s' AND beltlineevent.sitename= '%s'" % (name, start, site)
                 self.cursor.execute(query_revenue)
                 revenue = self.cursor.fetchone()
-                self.tree.insert("", "end", values=(name, staff[1], duration[1], visits[1], revenue[1]))
+                self.tree.insert("", "end", values=(name, staff[1], duration[1], visits[1], revenue[1], start))
         '''else:
             query = "SELECT eventname, startdate, sitename from BeltLineEvent where "
             query_duration = "select Distinct staffassigned.eventname as Name, (enddate-startdate) as Duration from staffassigned join beltlineevent on staffassigned.eventname = beltlineevent.eventname where "
@@ -1523,91 +1555,127 @@ class App:
             self.currGui = self.navGUI
 
     def view_edit_event(self):
-        self.currGui.withdraw()
-        self.view_event = Toplevel()
-        self.currGui = self.view_event
-        self.view_event.title("View/Edit Event")
+        if len(self.tree.selection()) == 0:
+            messagebox.showwarning("Select Event", "Please select a event to edit")
+        else:
+            self.currGui.withdraw()
+            self.view_event = Toplevel()
+            self.currGui = self.view_event
+            self.view_event.title("View/Edit Event")
 
-        Label(self.view_event, text="View/Edit Event").grid(row=0)
+            Label(self.view_event, text="View/Edit Event").grid(row=0)
 
-        frame = Frame(self.view_event)
-        frame.grid()
+            frame = Frame(self.view_event)
+            frame.grid()
 
-        Label(frame, text="Name ").grid(row=0, column=0)
-        Label(frame, text="Event Name").grid(row=0, column=1)
+            query = "Select sitename from site where managerID = '%s'" % (self.user.get())
+            self.cursor.execute(query)
+            site = self.cursor.fetchone()
+            self.site = site[0]
 
-        Label(frame, text="Price ($) ").grid(row=0, column=2)
-        Label(frame, text="25").grid(row=0, column=3)
+            select = self.tree.item(self.tree.selection())
+            self.name = select["values"][0]
+            self.start = select["values"][5]
+            query = "Select eventname, startdate, enddate, price, capacity, minstaffreq, eventdesc from BeltLineEvent where eventname = '%s' and startdate = '%s' and sitename = '%s'" % (self.name, self.start, self.site)
+            self.cursor.execute(query)
+            event_details = self.cursor.fetchone()
 
-        Label(frame, text="Start Date").grid(row=1, column=0)
-        Label(frame, text='2019-02-01').grid(row=1, column=1)
 
-        Label(frame, text="End Date").grid(row=1, column=2)
-        Label(frame, text="2019-02-01").grid(row=1, column=3)
+            Label(frame, text="Name ").grid(row=0, column=0)
+            Label(frame, text=event_details[0]).grid(row=0, column=1)
 
-        Label(frame, text="Minimum Staff Required").grid(row=2, column=0)
-        Label(frame, text='4').grid(row=2, column=1)
+            Label(frame, text="Price ($) ").grid(row=0, column=2)
+            Label(frame, text=event_details[3]).grid(row=0, column=3)
 
-        Label(frame, text="Capacity").grid(row=2, column=2)
-        Label(frame, text='100').grid(row=2, column=3)
+            Label(frame, text="Start Date").grid(row=1, column=0)
+            Label(frame, text=event_details[1]).grid(row=1, column=1)
 
-        Label(frame, text="Staff Assigned").grid(row=3, column=0)
-        list = Listbox(frame, selectmode=MULTIPLE)
-        list.insert(0, 'Staff 1')
-        list.insert(1, 'Staff 2')
-        list.insert(2, 'Staff 3')
-        list.grid(row=3, column=1)
+            Label(frame, text="End Date").grid(row=1, column=2)
+            Label(frame, text=event_details[2]).grid(row=1, column=3)
 
-        Label(frame, text="Description").grid(row = 4, column = 0)
-        self.description = StringVar()
-        self.desc = Text(frame,height=7)
-        self.scroll = Scrollbar(frame, orient='vertical')
-        self.desc.grid(row=4,column=1,pady=4)
-        frame.columnconfigure(1,weight=1)
-        self.desc.insert(END,'description goes here')
-        self.scroll.config(command=self.desc.yview)
-        self.desc.config(yscrollcommand=self.scroll.set)
+            Label(frame, text="Minimum Staff Required").grid(row=2, column=0)
+            Label(frame, text=event_details[5]).grid(row=2, column=1)
 
-        Label(frame, text="Daily Visits Range").grid(row=5, column=0)
-        self.visits_lower = IntVar()
-        self.visits_lower_enter = Entry(frame, textvariable=self.visits_lower)
-        self.visits_lower_enter.grid(row=5, column=1)
+            Label(frame, text="Capacity").grid(row=2, column=2)
+            Label(frame, text=event_details[4]).grid(row=2, column=3)
 
-        Label(frame, text=" -- ").grid(row=5, column=2)
-        self.visits_upper = IntVar()
-        self.visits_upper_enter = Entry(frame, textvariable=self.visits_upper)
-        self.visits_upper_enter.grid(row=5, column=3)
+            query = "Select distinct concat(firstname, ' ', lastname) from view_staffnames"
+            self.cursor.execute(query)
+            staff = self.cursor.fetchall()
 
-        Label(frame, text="Daily Revenue Range").grid(row=5, column=4)
-        self.revenue_lower = IntVar()
-        self.revenue_lower_enter = Entry(frame, textvariable=self.revenue_lower)
-        self.revenue_lower_enter.grid(row=5, column=5)
+            query = "select concat(firstname, ' ', lastname) from view_staffnames where eventname = '%s' and eventstartdate = '%s' and sitename = '%s'" % (self.name, self.start, self.site)
+            self.cursor.execute(query)
+            selected = self.cursor.fetchall()
+            self.previously_selected = []
 
-        Label(frame, text=" -- ").grid(row=5, column=6)
-        self.revenue_upper = IntVar()
-        self.revenue_upper_enter = Entry(frame, textvariable=self.revenue_upper)
-        self.revenue_upper_enter.grid(row=5, column=7)
+            Label(frame, text="Staff Assigned").grid(row=3, column=0)
+            self.list = Listbox(frame, selectmode=MULTIPLE)
+            count = 0
+            dict = {}
+            for s in staff:
+                self.list.insert(count, s[0])
+                dict[s[0]] = count
+                count = count + 1
+            #list.insert(0, 'Staff 1')
+            #list.insert(1, 'Staff 2')
+            #list.insert(2, 'Staff 3')
+            self.list.grid(row=3, column=1)
 
-        self.filter = Button(frame, text="Filter", command=self.filter_view_edit_event).grid(row=6, column=0)
-        self.create = Button(frame, text="Update", command=self.update_event).grid(row=6, column=1)
+            for s in selected:
+                index = dict[s[0]]
+                self.list.select_set(index)
+                self.previously_selected.append(s[0])
 
-        frame_tree = Frame(self.view_event)
-        frame_tree.grid()
+            Label(frame, text="Description").grid(row = 4, column = 0)
+            self.description = StringVar()
+            self.desc = Text(frame,height=7)
+            self.scroll = Scrollbar(frame, orient='vertical')
+            self.desc.grid(row=4,column=1,pady=4)
+            frame.columnconfigure(1,weight=1)
+            self.desc.insert(END,event_details[6])
+            self.scroll.config(command=self.desc.yview)
+            self.desc.config(yscrollcommand=self.scroll.set)
 
-        self.tree = ttk.Treeview(frame_tree, columns=['Date', 'Daily Visits', 'Daily Revenue'],
-                            show='headings', selectmode='browse')
+            Label(frame, text="Daily Visits Range").grid(row=5, column=0)
+            self.visits_lower = IntVar()
+            self.visits_lower_enter = Entry(frame, textvariable=self.visits_lower)
+            self.visits_lower_enter.grid(row=5, column=1)
 
-        self.tree.heading('Date', text='Date')
-        self.tree.heading('Daily Visits', text='Daily Visits')
-        self.tree.heading('Daily Revenue', text='Daily Revenue')
-        #self.tree.insert("", "end", values=("1", "2", "3"))
-        #self.tree.insert("", "end", values=("4", "5", "6"))
-        self.tree.grid(row=1, column=3)
+            Label(frame, text=" -- ").grid(row=5, column=2)
+            self.visits_upper = IntVar()
+            self.visits_upper_enter = Entry(frame, textvariable=self.visits_upper)
+            self.visits_upper_enter.grid(row=5, column=3)
 
-        frame_under = Frame(self.view_event)
-        frame_under.grid()
+            Label(frame, text="Daily Revenue Range").grid(row=5, column=4)
+            self.revenue_lower = IntVar()
+            self.revenue_lower_enter = Entry(frame, textvariable=self.revenue_lower)
+            self.revenue_lower_enter.grid(row=5, column=5)
 
-        self.back = Button(frame_under, text="Back", command=self.view_edit_transit_back).grid(row=0, column=0)
+            Label(frame, text=" -- ").grid(row=5, column=6)
+            self.revenue_upper = IntVar()
+            self.revenue_upper_enter = Entry(frame, textvariable=self.revenue_upper)
+            self.revenue_upper_enter.grid(row=5, column=7)
+
+            self.filter = Button(frame, text="Filter", command=self.filter_view_edit_event).grid(row=6, column=0)
+            self.create = Button(frame, text="Update", command=self.update_event).grid(row=6, column=1)
+
+            frame_tree = Frame(self.view_event)
+            frame_tree.grid()
+
+            self.tree = ttk.Treeview(frame_tree, columns=['Date', 'Daily Visits', 'Daily Revenue'],
+                                show='headings', selectmode='browse')
+
+            self.tree.heading('Date', text='Date')
+            self.tree.heading('Daily Visits', text='Daily Visits')
+            self.tree.heading('Daily Revenue', text='Daily Revenue')
+            #self.tree.insert("", "end", values=("1", "2", "3"))
+            #self.tree.insert("", "end", values=("4", "5", "6"))
+            self.tree.grid(row=1, column=3)
+
+            frame_under = Frame(self.view_event)
+            frame_under.grid()
+
+            self.back = Button(frame_under, text="Back", command=self.view_edit_transit_back).grid(row=0, column=0)
 
     def view_edit_transit_back(self):
         self.currGui.withdraw()
@@ -1618,7 +1686,31 @@ class App:
         pass
 
     def update_event(self):
-        pass
+        query = "Update BeltLineEvent set EventDesc= '%s'" % (self.desc.get("1.0",END))
+        self.cursor.execute(query)
+        indices = self.list.curselection()
+        currently_selected = []
+        for index in indices:
+            currently_selected.append(self.list.get(index))
+        for index in indices:
+            staff = self.list.get(index)
+            id_query = "select username from normaluser where concat(firstname, ' ',lastname)= '%s'" % (staff)
+            self.cursor.execute(id_query)
+            employee_id = self.cursor.fetchone()
+            if staff not in self.previously_selected:
+                query = "Insert into staffassigned values('%s','%s','%s','%s')" % (employee_id[0], self.name, self.start, self.site)
+                self.cursor.execute(query)
+        for site in self.previously_selected:
+            id_query = "select username from normaluser where concat(firstname, ' ',lastname)= '%s'" % (staff)
+            self.cursor.execute(id_query)
+            employee_id = self.cursor.fetchone()
+            if site not in currently_selected:
+                query = "Delete from staffassigned where eventstartdate= '%s' AND username = '%s' and eventname = '%s' and sitename = '%s'" % (self.start, employee_id[0], self.name, self.site)
+                self.cursor.execute(query)
+        self.db.commit()
+        messagebox.showinfo("Success!!", "The transit has been edited")
+        self.currGui.withdraw()
+        self.manage_event()
 
     def create_event(self):
         self.currGui.withdraw()
@@ -1733,7 +1825,7 @@ class App:
             site = self.cursor.fetchone()
             query_check = "select eventname, startdate from beltlineevent where startdate = '%s' and eventname = '%s' and sitename = '%s'" % (self.start_date.get(), self.name.get(), site[0])
             check = self.cursor.execute(query_check)
-            #query_c = "select eventname, startdate, sitename, enddate from beltlineevent where eventname = '%s', sitename = '%s', "
+            #query_c = "select exists (select eventname, startdate from beltlineevent where startdate = '%s' and eventname = '%s' and sitename = '%s')"
             if check == 1:
                 messagebox.showwarning("Error!", "There is already an event with this name and start date at your site. Please enter a different start date or a different name")
             query = "insert into beltlineevent values('%s','%s','%s','%s','%s','%s','%s','%s')" % (self.name.get(),self.start_date.get() ,site[0],self.end_date.get() ,self.price.get(),self.capacity.get(),self.min_staff.get(),self.desc.get("1.0", END))
@@ -3323,6 +3415,7 @@ class App:
             self.currGui = self.navGUI
 
     def daily_detail(self):
+
         self.currGui.withdraw()
         self.dailyDetailGUI = Toplevel()
         self.dailyDetailGUI.title("Daily Detail")
@@ -3353,18 +3446,21 @@ class App:
         self.back = Button(frame_under, text="Back", command=self.daily_detail_back).grid(row=0, column=0)
 
     def populate_daily_detail(self):
-        for i in self.tree.get_children():
-            self.tree.delete(i)
+        if len(self.tree.selection()) == 0:
+            messagebox.showwarning("Select Site Report", "Please select a site report")
+        else:
+            for i in self.tree.get_children():
+                self.tree.delete(i)
 
-        query = "select any_value(a.eventname) as Name , group_concat(distinct any_value(concat(firstname, \" \",lastname))) as Staff,count(dateattended) as Visits, (any_value(price)*count(dateattended)) as Revenue from visitevent a join beltlineevent b on a.eventname = b.eventname and a.sitename = b.sitename and a.eventstartdate = b.startdate join view_staffnames s on s.eventname = a.eventname group by a.dateattended, a.eventname, a.sitename;"
-        self.cursor.execute(query)
-        self.events = self.cursor.fetchall()
-        for event in self.events:
-            eventName = event[0]
-            staffNames = event[1]
-            visists = event[2]
-            revenue = event[3]
-            self.tree.insert("", "end", values=(eventName, staffNames, visists, revenue))
+            query = "select any_value(a.eventname) as Name , group_concat(distinct any_value(concat(firstname, \" \",lastname))) as Staff,count(dateattended) as Visits, (any_value(price)*count(dateattended)) as Revenue from visitevent a join beltlineevent b on a.eventname = b.eventname and a.sitename = b.sitename and a.eventstartdate = b.startdate join view_staffnames s on s.eventname = a.eventname group by a.dateattended, a.eventname, a.sitename;"
+            self.cursor.execute(query)
+            self.events = self.cursor.fetchall()
+            for event in self.events:
+                eventName = event[0]
+                staffNames = event[1]
+                visists = event[2]
+                revenue = event[3]
+                self.tree.insert("", "end", values=(eventName, staffNames, visists, revenue))
 
 
 
